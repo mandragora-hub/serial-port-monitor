@@ -14,12 +14,15 @@ add_definitions(${GTKMM_CFLAGS_OTHER})
 # )
 
 add_library(sources_files STATIC
-    examplewindow.h
-    examplewindow.cpp
+    arduinoserialportcommunicationapp.h
+    arduinoserialportcommunicationapp.cpp
+    arduinoserialportcommunicationwindow.h
+    arduinoserialportcommunicationwindow.cpp
 )
 
+
 add_executable(arduino-serial-port-communication main.cpp)
-target_link_libraries(arduino-serial-port-communication ${GTKMM_LIBRARIES} sources_files)
+target_link_libraries(arduino-serial-port-communication sources_files ${GTKMM_LIBRARIES})
 
 include(CTest)
 enable_testing()
