@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10.0)
 project(arduino-serial-port-communication VERSION 0.1.0 LANGUAGES C CXX)
 
+# Installing GTKMM library
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM REQUIRED gtkmm-4.0)
 
@@ -13,16 +14,32 @@ add_definitions(${GTKMM_CFLAGS_OTHER})
 #     src/serial_port.h
 # )
 
+
+# Generated resources files
+set(GLIB_COMPILE_RESOURCES_COMMAND "glib-compile-resources")
+set(resources_srcs "${CMAKE_CURRENT_BINARY_DIR}/resources.c")
+add_custom_command(
+      OUTPUT "${resources_srcs}"
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMAND ${GLIB_COMPILE_RESOURCES_COMMAND}
+      ARGS 
+        --target="${resources_srcs}"
+        --generate-source "${CMAKE_CURRENT_SOURCE_DIR}/resources/gresource.xml"
+)
+
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+
+add_library(resources_files STATIC ${resources_srcs})
 add_library(sources_files STATIC
-    arduinoserialportcommunicationapp.h
-    arduinoserialportcommunicationapp.cpp
-    arduinoserialportcommunicationwindow.h
-    arduinoserialportcommunicationwindow.cpp
+    spmonitorapp.h
+    spmonitorapp.cpp
+    spmonitorappwindow.h
+    spmonitorappwindow.cpp
 )
 
 
 add_executable(arduino-serial-port-communication main.cpp)
-target_link_libraries(arduino-serial-port-communication sources_files ${GTKMM_LIBRARIES})
+target_link_libraries(arduino-serial-port-communication resources_files sources_files ${GTKMM_LIBRARIES})
 
 include(CTest)
 enable_testing()

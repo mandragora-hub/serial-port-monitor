@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Serial Port Monitor
+GenericName=Example
+Comment=Serial Port Monitor
+Icon=exampleapp
+StartupNotify=true
+Exec=@bindir@/exampleapp %U
+Categories=GNOME;GTK;Utility
