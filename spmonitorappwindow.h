@@ -14,6 +14,9 @@ class SPMonitorAppWindow : public Gtk::ApplicationWindow {
 
  protected:
   Glib::RefPtr<Gtk::Builder> m_refBuilder;
+  Glib::RefPtr<Gio::Settings> m_settings;
+  Gtk::Stack *m_stack {nullptr};
+  Gtk::MenuButton *m_gears {nullptr};
 };
 
 #endif  // ARDUINO_SERIAL_PORT_COMMUNICATION_WINDOW_H

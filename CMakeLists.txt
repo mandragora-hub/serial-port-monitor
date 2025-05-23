@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10.0)
 project(arduino-serial-port-communication VERSION 0.1.0 LANGUAGES C CXX)
 
+set (CMAKE_CXX_STANDARD 23)
+
 # Installing GTKMM library
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM REQUIRED gtkmm-4.0)
@@ -25,6 +27,23 @@ add_custom_command(
       ARGS 
         --target="${resources_srcs}"
         --generate-source "${CMAKE_CURRENT_SOURCE_DIR}/resources/gresource.xml"
+      COMMENT "Compiling GResources"
+)
+
+# Generated schemas files
+set(GLIB_COMPILE_SCHEMAS_COMMAND "glib-compile-schemas")
+set(schemas_srcs "${CMAKE_CURRENT_BINARY_DIR}")
+add_custom_command(
+      OUTPUT "${schemas_srcs}/gschemas.compiled"
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/resources
+      COMMAND ${GLIB_COMPILE_SCHEMAS_COMMAND} . ## current working dir
+      ARGS 
+        --targetdir="${schemas_srcs}"
+      COMMENT "Compiling GSchemas"
+)
+add_custom_target(setting_schemas 
+  ALL
+  DEPENDS "${schemas_srcs}/gschemas.compiled"
 )
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
@@ -35,6 +54,8 @@ add_library(sources_files STATIC
     spmonitorapp.cpp
     spmonitorappwindow.h
     spmonitorappwindow.cpp
+    spmonitorappprefs.h
+    spmonitorappprefs.cpp
 )
 
 

@@ -12,12 +12,17 @@ class SPMonitorApp : public Gtk::Application {
  protected:
   SPMonitorApp();
   // override default signal handlers:
+  void on_startup() override;
   void on_activate() override;
   void on_open(const Gio::Application::type_vec_files &files,
                const Glib::ustring &hint) override;
 
  private:
   SPMonitorAppWindow *create_appwindow();
+  
+  // Menu actions
+  void on_action_preferences();
+  void on_action_quit();
 };
 
 #endif  // SP_MONITOR_APP_H

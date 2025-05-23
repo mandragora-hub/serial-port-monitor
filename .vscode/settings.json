@@ -1,17 +1,19 @@
 {
-    "C_Cpp.default.compilerPath": "/usr/bin/g++",
-    "C_Cpp.default.compileCommands": [
-        "${workspaceFolder}/build/compile_commands.json"
-    ],
-    "cSpell.words": [
-        "CFLAGS",
-        "CPACK",
-        "gresource",
-        "GTKMM",
-        "srcs"
-    ],
-    "files.associations": {
-        "mdx": "markdown",
-        "stdexcept": "cpp"
-    }
+  "C_Cpp.default.compilerPath": "/usr/bin/g++",
+  "C_Cpp.default.compileCommands": [
+    "${workspaceFolder}/build/compile_commands.json"
+  ],
+  "cSpell.words": [
+    "CFLAGS",
+    "CPACK",
+    "crossfade",
+    "gresource",
+    "GTKMM",
+    "srcs"
+  ],
+  "files.associations": {
+    "mdx": "markdown",
+    "stdexcept": "cpp",
+    "optional": "cpp"
+  }
 }

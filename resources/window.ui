@@ -1,10 +1,24 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
     <object class="GtkApplicationWindow" id="app_window">
         <property name="title">Serial Port Monitor</property>
         <property name="default-width">600</property>
         <property name="default-height">400</property>
         <property name="hide-on-close">true</property>
+        <child type="titlebar">
+            <object class="GtkHeaderBar" id="header">
+                <child type="title">
+                    <object class="GtkStackSwitcher" id="tabs">
+                        <property name="stack">stack</property>
+                    </object>
+                </child>
+                <child type="end">
+                    <object class="GtkMenuButton" id="gears">
+                        <property name="direction">none</property>
+                    </object>
+                </child>
+            </object>
+        </child>
         <child>
             <object class="GtkBox" id="content_box">
                 <property name="orientation">vertical</property>
