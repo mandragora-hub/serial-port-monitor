@@ -4,5 +4,6 @@
     <file preprocess="xml-stripblanks">resources/window.ui</file>
     <file preprocess="xml-stripblanks">resources/gears_menu.ui</file>
     <file preprocess="xml-stripblanks">resources/prefs.ui</file>
+    <file>resources/logo.png</file>
   </gresource>
 </gresources>

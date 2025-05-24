@@ -7,6 +7,7 @@
         <property name="hide-on-close">true</property>
         <child type="titlebar">
             <object class="GtkHeaderBar" id="header">
+                <property name="decoration-layout">icon:close</property>
                 <child>
                     <object class="GtkLabel" id="lines_label">
                         <property name="visible">False</property>

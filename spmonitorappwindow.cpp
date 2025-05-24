@@ -71,7 +71,7 @@ SPMonitorAppWindow::SPMonitorAppWindow(
   if (!menu) throw std::runtime_error("No \"menu\" object in gears_menu.ui");
 
   m_gears->set_menu_model(menu);
-   add_action(m_settings->create_action("show-words"));
+  add_action(m_settings->create_action("show-words"));
 
   // Bind the "visible" property of m_lines to the win.show-lines action, to
   // the "Lines" menu item and to the "visible" property of m_lines_label.
@@ -79,6 +79,11 @@ SPMonitorAppWindow::SPMonitorAppWindow(
       Gio::PropertyAction::create("show-lines", m_lines->property_visible()));
   m_binding_lines_visible = Glib::Binding::bind_property(
       m_lines->property_visible(), m_lines_label->property_visible());
+
+  // Set window icon
+  Gtk::IconTheme::get_for_display(get_display())
+      ->add_resource_path("/org/gtkmm/spmonitor/resources");
+  set_icon_name("logo");
 }
 
 // static
