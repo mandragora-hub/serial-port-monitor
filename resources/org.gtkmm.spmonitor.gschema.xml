@@ -17,7 +17,7 @@
       <description></description>
     </key>
     <key name="show-words" type="b">
-      <default>true</default>
+      <default>false</default>
       <summary>Show words</summary>
       <description>whether to show a word list in the sidebar</description>
     </key>

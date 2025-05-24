@@ -22,6 +22,7 @@ class SPMonitorAppWindow : public Gtk::ApplicationWindow {
   void on_reveal_child_changed();
 
   void update_words();
+  void update_lines();
 
   Glib::RefPtr<Gtk::Builder> m_refBuilder;
   Glib::RefPtr<Gio::Settings> m_settings;
@@ -36,7 +37,10 @@ class SPMonitorAppWindow : public Gtk::ApplicationWindow {
 #endif
   Gtk::Revealer *m_sidebar{nullptr};
   Gtk::ListBox *m_words{nullptr};
-  Glib::RefPtr<Glib::Binding> m_prop_binding;
+  Gtk::Label *m_lines{nullptr};
+  Gtk::Label *m_lines_label{nullptr};
+  Glib::RefPtr<Glib::Binding> m_binding_search_enabled;
+  Glib::RefPtr<Glib::Binding> m_binding_lines_visible;
 };
 
 #endif  // ARDUINO_SERIAL_PORT_COMMUNICATION_WINDOW_H

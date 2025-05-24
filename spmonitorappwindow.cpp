@@ -1,8 +1,8 @@
 #include "spmonitorappwindow.h"
 
 #include <iostream>
-#include <stdexcept>
 #include <set>
+#include <stdexcept>
 
 #include "resources.c"
 #include "spmonitorapp.h"
@@ -39,13 +39,20 @@ SPMonitorAppWindow::SPMonitorAppWindow(
   m_words = m_refBuilder->get_widget<Gtk::ListBox>("words");
   if (!m_words) throw std::runtime_error("No \"words\" object in window.ui");
 
+  m_lines = m_refBuilder->get_widget<Gtk::Label>("lines");
+  if (!m_lines) throw std::runtime_error("No \"lines\" object in window.ui");
+
+  m_lines_label = m_refBuilder->get_widget<Gtk::Label>("lines_label");
+  if (!m_lines_label)
+    throw std::runtime_error("No \"lines_label\" object in window.ui");
+
   // Bind settings
   m_settings = Gio::Settings::create("org.gtkmm.spmonitor");
   m_settings->bind("transition", m_stack->property_transition_type());
   m_settings->bind("show-words", m_sidebar->property_reveal_child());
 
   // Bind properties
-  m_prop_binding = Glib::Binding::bind_property(
+  m_binding_search_enabled = Glib::Binding::bind_property(
       m_search->property_active(), m_searchbar->property_search_mode_enabled(),
       Glib::Binding::Flags::BIDIRECTIONAL);
 
@@ -64,7 +71,14 @@ SPMonitorAppWindow::SPMonitorAppWindow(
   if (!menu) throw std::runtime_error("No \"menu\" object in gears_menu.ui");
 
   m_gears->set_menu_model(menu);
-  add_action(m_settings->create_action("show-words"));
+   add_action(m_settings->create_action("show-words"));
+
+  // Bind the "visible" property of m_lines to the win.show-lines action, to
+  // the "Lines" menu item and to the "visible" property of m_lines_label.
+  add_action(
+      Gio::PropertyAction::create("show-lines", m_lines->property_visible()));
+  m_binding_lines_visible = Glib::Binding::bind_property(
+      m_lines->property_visible(), m_lines_label->property_visible());
 }
 
 // static
@@ -110,6 +124,7 @@ void SPMonitorAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
 
   m_search->set_sensitive(true);
   update_words();
+  update_lines();
 }
 
 void SPMonitorAppWindow::on_search_text_changed() {
@@ -144,6 +159,7 @@ void SPMonitorAppWindow::on_search_text_changed() {
 void SPMonitorAppWindow::on_visible_child_changed() {
   m_searchbar->set_search_mode(false);
   update_words();
+  update_lines();
 }
 
 void SPMonitorAppWindow::on_find_word(const Gtk::Button *button) {
@@ -188,4 +204,24 @@ void SPMonitorAppWindow::update_words() {
         sigc::mem_fun(*this, &SPMonitorAppWindow::on_find_word), row));
     m_words->append(*row);
   }
+}
+void SPMonitorAppWindow::update_lines() {
+  auto tab = dynamic_cast<Gtk::ScrolledWindow *>(m_stack->get_visible_child());
+  if (!tab) return;
+
+  auto view = dynamic_cast<Gtk::TextView *>(tab->get_child());
+  if (!view) {
+    std::cout << "ExampleAppWindow::update_lines(): No visible text view."
+              << std::endl;
+    return;
+  }
+  auto buffer = view->get_buffer();
+
+  int count = 0;
+  auto iter = buffer->begin();
+  while (iter) {
+    ++count;
+    if (!iter.forward_line()) break;
+  }
+  m_lines->set_text(Glib::ustring::format(count));
 }

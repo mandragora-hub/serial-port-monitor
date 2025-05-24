@@ -7,6 +7,17 @@
         <property name="hide-on-close">true</property>
         <child type="titlebar">
             <object class="GtkHeaderBar" id="header">
+                <child>
+                    <object class="GtkLabel" id="lines_label">
+                        <property name="visible">False</property>
+                        <property name="label" translatable="yes">Lines:</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkLabel" id="lines">
+                        <property name="visible">False</property>
+                    </object>
+                </child>
                 <child type="title">
                     <object class="GtkStackSwitcher" id="tabs">
                         <property name="stack">stack</property>
@@ -52,11 +63,11 @@
                                 </child>
                             </object>
                         </child>
-                    </object>
-                </child>
-                <child>
-                    <object class="GtkStack" id="stack">
-                        <property name="transition-duration">500</property>
+                        <child>
+                            <object class="GtkStack" id="stack">
+                                <property name="transition-duration">500</property>
+                            </object>
+                        </child>
                     </object>
                 </child>
             </object>
