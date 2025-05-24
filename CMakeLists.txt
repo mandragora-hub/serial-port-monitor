@@ -41,9 +41,10 @@ add_custom_command(
         --targetdir="${schemas_srcs}"
       COMMENT "Compiling GSchemas"
 )
-add_custom_target(setting_schemas 
-  ALL
-  DEPENDS "${schemas_srcs}/gschemas.compiled"
+add_custom_target(
+    setting_schemas 
+    ALL
+    DEPENDS "${schemas_srcs}/gschemas.compiled"
 )
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
