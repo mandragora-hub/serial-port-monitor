@@ -2,12 +2,12 @@
 <interface>
     <object class="GtkApplicationWindow" id="app_window">
         <property name="title">Serial Port Monitor</property>
-        <property name="default-width">600</property>
-        <property name="default-height">400</property>
+        <property name="default-width">800</property>
+        <property name="default-height">600</property>
         <property name="hide-on-close">true</property>
         <child type="titlebar">
             <object class="GtkHeaderBar" id="header">
-                <property name="decoration-layout">icon:close</property>
+                <property name="decoration-layout">icon:minimize,maximize,close</property>
                 <child>
                     <object class="GtkLabel" id="lines_label">
                         <property name="visible">False</property>

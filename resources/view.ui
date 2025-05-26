@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <object class="GtkBox" id="view-box">
+        <property name="orientation">vertical</property>
+        <child>
+            <object class="GtkBox" id="sendbar-box">
+                <property name="spacing">5</property>
+                <child>
+                    <object class="GtkEntry" id="sendbar">
+                        <property name="hexpand">true</property>
+                        <property name="placeholder-text">Type message to send</property>
+                        <property name="margin-start">5</property>
+                        <property name="margin-top">5</property>
+                        <property name="margin-bottom">5</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkButton" id="sendbar-button">
+                        <property name="label">Send</property>
+                        <property name="margin-end">5</property>
+                        <property name="margin-top">5</property>
+                        <property name="margin-bottom">5</property>
+                    </object>
+                </child>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSeparator" />
+        </child>
+        <child>
+            <object class="GtkScrolledWindow">
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+                <child>
+                    <object class="GtkTextView" id="text-view">
+                        <property name="editable">false</property>
+                        <property name="cursor-visible">false</property>
+                    </object>
+                </child>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSeparator" />
+        </child>
+        <child>
+            <object class="GtkCenterBox">
+                <property name="margin-start">5</property>
+                <property name="margin-end">5</property>
+                <property name="margin-top">5</property>
+                <property name="margin-bottom">5</property>
+                <child type="start">
+                    <object class="GtkBox">
+                        <property name="spacing">5</property>
+                        <child>
+                            <object class="GtkCheckButton">
+                                <property name="label">Autoscroll</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkCheckButton">
+                                <property name="label">Show timestamp</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child type="end">
+                    <object class="GtkBox">
+                        <property name="spacing">5</property>
+                        <child>
+                            <object class="GtkDropDown" />
+                        </child>
+                        <child>
+                            <object class="GtkDropDown" />
+                        </child>
+                        <child>
+                            <object class="GtkButton">
+                                <property name="label">Clear output</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+            </object>
+        </child>
+    </object>
+</interface>

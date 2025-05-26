@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="/org/gtkmm/spmonitor">
     <file preprocess="xml-stripblanks">resources/window.ui</file>
+    <file preprocess="xml-stripblanks">resources/view.ui</file>
     <file preprocess="xml-stripblanks">resources/gears_menu.ui</file>
     <file preprocess="xml-stripblanks">resources/prefs.ui</file>
     <file>resources/logo.png</file>

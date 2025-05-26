@@ -1,16 +1,16 @@
-#ifndef ARDUINO_SERIAL_PORT_COMMUNICATION_WINDOW_H
-#define ARDUINO_SERIAL_PORT_COMMUNICATION_WINDOW_H
+#ifndef SPM_APP_WINDOW_H
+#define SPM_APP_WINDOW_H
 
 #include <gtkmm-4.0/gtkmm.h>
 
 #define HAS_SEARCH_ENTRY2 GTKMM_CHECK_VERSION(4, 13, 2)
 
-class SPMonitorAppWindow : public Gtk::ApplicationWindow {
+class SPMAppWindow : public Gtk::ApplicationWindow {
  public:
-  SPMonitorAppWindow(BaseObjectType *cobject,
+  SPMAppWindow(BaseObjectType *cobject,
                      const Glib::RefPtr<Gtk::Builder> &refBuilder);
 
-  static SPMonitorAppWindow *create();
+  static SPMAppWindow *create();
 
   void open_file_view(const Glib::RefPtr<Gio::File> &file);
 
@@ -41,6 +41,10 @@ class SPMonitorAppWindow : public Gtk::ApplicationWindow {
   Gtk::Label *m_lines_label{nullptr};
   Glib::RefPtr<Glib::Binding> m_binding_search_enabled;
   Glib::RefPtr<Glib::Binding> m_binding_lines_visible;
+
+  private: 
+  Gtk::TextView *get_text_view();
+  void createView();
 };
 
-#endif  // ARDUINO_SERIAL_PORT_COMMUNICATION_WINDOW_H
+#endif  // SPM_APP_WINDOW_H

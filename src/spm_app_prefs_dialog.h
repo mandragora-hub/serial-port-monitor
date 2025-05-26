@@ -1,5 +1,5 @@
-#ifndef SP_MONITOR_APP_PREFS_H_
-#define SP_MONITOR_APP_PREFS_H_
+#ifndef SPM_APP_PREFS_DIALOG_H
+#define SPM_APP_PREFS_DIALOG_H
 
 #include <gtkmm-4.0/gtkmm.h>
 
@@ -9,11 +9,11 @@
 #define HAS_GIO_SETTINGS_BIND_WITH_MAPPING 0
 #endif
 
-class SPMonitorAppPrefs : public Gtk::Window {
+class SPMAppPrefsDialog : public Gtk::Window {
  public:
-  SPMonitorAppPrefs(BaseObjectType *cobject,
+  SPMAppPrefsDialog(BaseObjectType *cobject,
                     const Glib::RefPtr<Gtk::Builder> &refBuilder);
-  static SPMonitorAppPrefs *create(Gtk::Window &parent);
+  static SPMAppPrefsDialog *create(Gtk::Window &parent);
 
  protected:
 #if HAS_GIO_SETTINGS_BIND_WITH_MAPPING
@@ -34,4 +34,4 @@ class SPMonitorAppPrefs : public Gtk::Window {
   Gtk::FontDialogButton *m_font{nullptr};
   Gtk::DropDown *m_transition{nullptr};
 };
-#endif  // SPMONITOR_APP_PREFS_H_
+#endif // SPM_APP_PREFS_DIALOG_H

@@ -1,16 +1,16 @@
-#ifndef SP_MONITOR_APP_H
-#define SP_MONITOR_APP_H
+#ifndef SPM_APP_H
+#define SPM_APP_H
 
 #include <gtkmm-4.0/gtkmm.h>
 
-class SPMonitorAppWindow;
+class SPMAppWindow;
 
-class SPMonitorApp : public Gtk::Application {
+class SPMApp : public Gtk::Application {
  public:
-  static Glib::RefPtr<SPMonitorApp> create();
+  static Glib::RefPtr<SPMApp> create();
 
  protected:
-  SPMonitorApp();
+  SPMApp();
   // override default signal handlers:
   void on_startup() override;
   void on_activate() override;
@@ -18,11 +18,11 @@ class SPMonitorApp : public Gtk::Application {
                const Glib::ustring &hint) override;
 
  private:
-  SPMonitorAppWindow *create_appwindow();
+  SPMAppWindow *create_appwindow();
   
   // Menu actions
   void on_action_preferences();
   void on_action_quit();
 };
 
-#endif  // SP_MONITOR_APP_H
+#endif  // SMR_APP_H

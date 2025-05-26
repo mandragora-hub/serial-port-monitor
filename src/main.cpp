@@ -1,4 +1,4 @@
-#include "spmonitorapp.h"
+#include "spm_app.h"
 
 int main(int argc, char* argv[]) {
 #if HAS_SEARCH_ENTRY2
@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
   // application.
   Glib::setenv("GSETTINGS_SCHEMA_DIR", ".", false);
 
-  auto app = SPMonitorApp::create();
+  auto app = SPMApp::create();
   // Initialize the application
   return app->run(argc, argv);
 }

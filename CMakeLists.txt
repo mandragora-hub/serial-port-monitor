@@ -50,17 +50,13 @@ add_custom_target(
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 add_library(resources_files STATIC ${resources_srcs})
-add_library(sources_files STATIC
-    spmonitorapp.h
-    spmonitorapp.cpp
-    spmonitorappwindow.h
-    spmonitorappwindow.cpp
-    spmonitorappprefs.h
-    spmonitorappprefs.cpp
-)
 
+# Add sources files
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
+list(REMOVE_ITEM SOURCES "src/main.cpp")
+add_library(sources_files STATIC ${SOURCES})
 
-add_executable(arduino-serial-port-communication main.cpp)
+add_executable(arduino-serial-port-communication src/main.cpp)
 target_link_libraries(arduino-serial-port-communication resources_files sources_files ${GTKMM_LIBRARIES})
 
 include(CTest)

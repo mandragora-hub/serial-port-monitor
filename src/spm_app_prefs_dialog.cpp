@@ -1,9 +1,9 @@
-#include "spmonitorappprefs.h"
+#include "spm_app_prefs_dialog.h"
 
 #include <array>
 #include <stdexcept>
 
-#include "spmonitorappwindow.h"
+#include "spm_app_window.h"
 
 namespace {
 struct TransitionTypeStruct {
@@ -17,7 +17,7 @@ const std::array<TransitionTypeStruct, 3> transitionTypes = {
     TransitionTypeStruct{"slide-left-right", "Slide"}};
 }  // namespace
 
-SPMonitorAppPrefs::SPMonitorAppPrefs(
+SPMAppPrefsDialog::SPMAppPrefsDialog(
     BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refBuilder)
     : Gtk::Window(cobject), m_refBuilder(refBuilder) {
   m_font = m_refBuilder->get_widget<Gtk::FontDialogButton>("font");
@@ -52,15 +52,15 @@ SPMonitorAppPrefs::SPMonitorAppPrefs(
   // This is easier when g_settings_bind_with_mapping() is
   // wrapped in a Gio::Settings method.
   m_settings->signal_changed("font").connect(
-      sigc::mem_fun(*this, &SPMonitorAppPrefs::on_font_setting_changed));
+      sigc::mem_fun(*this, &SPMAppPrefsDialog::on_font_setting_changed));
   m_font->property_font_desc().signal_changed().connect(
-      sigc::mem_fun(*this, &SPMonitorAppPrefs::on_font_selection_changed));
+      sigc::mem_fun(*this, &SPMAppPrefsDialog::on_font_selection_changed));
 
   m_settings->signal_changed("transition")
       .connect(sigc::mem_fun(
-          *this, &SPMonitorAppPrefs::on_transition_setting_changed));
+          *this, &SPMAppPrefsDialog::on_transition_setting_changed));
   m_transition->property_selected().signal_changed().connect(sigc::mem_fun(
-      *this, &SPMonitorAppPrefs::on_transition_selection_changed));
+      *this, &SPMAppPrefsDialog::on_transition_selection_changed));
 
   // Synchronize the preferences dialog with m_settings.
   on_font_setting_changed("font");
@@ -68,12 +68,12 @@ SPMonitorAppPrefs::SPMonitorAppPrefs(
 #endif
 }
 
-SPMonitorAppPrefs* SPMonitorAppPrefs::create(Gtk::Window& parent) {
+SPMAppPrefsDialog* SPMAppPrefsDialog::create(Gtk::Window& parent) {
   // Load the builder file and instantiate its widgets.
   auto refBuilder =
       Gtk::Builder::create_from_resource("/org/gtkmm/spmonitor/resources/prefs.ui");
 
-  auto dialog = Gtk::Builder::get_widget_derived<SPMonitorAppPrefs>(
+  auto dialog = Gtk::Builder::get_widget_derived<SPMAppPrefsDialog>(
       refBuilder, "prefs_dialog");
   if (!dialog)
     throw std::runtime_error("No \"prefs_dialog\" object in prefs.ui");
@@ -83,7 +83,7 @@ SPMonitorAppPrefs* SPMonitorAppPrefs::create(Gtk::Window& parent) {
 }
 
 #if HAS_GIO_SETTINGS_BIND_WITH_MAPPING
-std::optional<unsigned int> SPMonitorAppPrefs::map_from_ustring_to_int(
+std::optional<unsigned int> SPMAppPrefsDialog::map_from_ustring_to_int(
     const Glib::ustring& transition) {
   for (std::size_t i = 0; i < transitionTypes.size(); ++i) {
     if (transitionTypes[i].id == transition) return i;
@@ -91,26 +91,26 @@ std::optional<unsigned int> SPMonitorAppPrefs::map_from_ustring_to_int(
   return std::nullopt;
 }
 
-std::optional<Glib::ustring> SPMonitorAppPrefs::map_from_int_to_ustring(
+std::optional<Glib::ustring> SPMAppPrefsDialog::map_from_int_to_ustring(
     const unsigned int& pos) {
   if (pos >= transitionTypes.size()) return std::nullopt;
   return transitionTypes[pos].id;
 }
 #else
-void SPMonitorAppPrefs::on_font_setting_changed(const Glib::ustring& /*key*/) {
+void SPMAppPrefsDialog::on_font_setting_changed(const Glib::ustring& /*key*/) {
   const auto font_setting = m_setting->get_string("font");
   const auto font_button = m_font->get_font_desc().to_string();
   if (font_setting != font_button)
     m_font->set_font_desc(Pango::FontDescription(font_setting));
 }
 
-void SPMonitorAppPrefs::on_font_selection_changed() {
+void SPMAppPrefsDialog::on_font_selection_changed() {
   const auto font_setting = m_setting->get_string("font");
   const auto font_button = m_font->get_font_desc().to_string();
   if (font_setting != font_button) m_settings->set_string("font", font_button);
 }
 
-void SPMonitorAppPrefs::on_transition_setting_changed(
+void SPMAppPrefsDialog::on_transition_setting_changed(
     const Glib::ustring& /*key*/) {
   const auto transition_setting = m_settings->get_string("transition");
   const auto transition_button =
@@ -125,7 +125,7 @@ void SPMonitorAppPrefs::on_transition_setting_changed(
   }
 }
 
-void SPMonitorAppPrefs::on_transition_selection_changed() {
+void SPMAppPrefsDialog::on_transition_selection_changed() {
   const auto pos = m_transition->get_selected();
   if (pos >= transitionTypes.sizes()) return;
   const auto transition_setting = m_settings->get_string("transition");
