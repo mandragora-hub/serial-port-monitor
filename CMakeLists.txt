@@ -11,11 +11,12 @@ include_directories(${GTKMM_INCLUDE_DIRS})
 link_directories(${GTKMM_LIBRARY_DIRS})
 add_definitions(${GTKMM_CFLAGS_OTHER})
 
+include(lib/external-dependencies.cmake)
+
 # add_library(arduino-serial-port-communication-lib
 #     src/serial_port.cpp
 #     src/serial_port.h
 # )
-
 
 # Generated resources files
 set(GLIB_COMPILE_RESOURCES_COMMAND "glib-compile-resources")
@@ -55,6 +56,12 @@ add_library(resources_files STATIC ${resources_srcs})
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
 list(REMOVE_ITEM SOURCES "src/main.cpp")
 add_library(sources_files STATIC ${SOURCES})
+
+# Use external dependencies => libserialport 
+ExternalProject_Get_property(libserialport install_dir)
+message(STATUS "Install directory of libserialport = ${install_dir}")
+include_directories(${install_dir}/include)
+target_link_libraries(sources_files PUBLIC ${install_dir}/lib/libserialport.a)
 
 add_executable(arduino-serial-port-communication src/main.cpp)
 target_link_libraries(arduino-serial-port-communication resources_files sources_files ${GTKMM_LIBRARIES})

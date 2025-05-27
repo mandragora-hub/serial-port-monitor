@@ -9,6 +9,7 @@
     "crossfade",
     "gresource",
     "GTKMM",
+    "libserialport",
     "srcs"
   ],
   "files.associations": {

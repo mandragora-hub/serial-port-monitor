@@ -3,6 +3,12 @@
     <menu id="menu">
         <section>
             <item>
+                <attribute name="label" translatable="yes">_Open serial port</attribute>
+                <attribute name="action">win.open-serial-port</attribute>
+            </item>
+        </section>
+        <section>
+            <item>
                 <attribute name="label" translatable="yes">_Words</attribute>
                 <attribute name="action">win.show-words</attribute>
             </item>
@@ -13,6 +19,12 @@
             <item>
                 <attribute name="label" translatable="yes">_Preferences</attribute>
                 <attribute name="action">app.preferences</attribute>
+            </item>
+        </section>
+        <section>
+            <item>
+                <attribute name="label" translatable="yes">_About</attribute>
+                <attribute name="action">app.show-about</attribute>
             </item>
         </section>
         <section>
