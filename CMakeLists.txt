@@ -52,15 +52,18 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 add_library(resources_files STATIC ${resources_srcs})
 
+# Use external dependencies => libserialport 
+ExternalProject_Get_property(libserialport install_dir)
+message(STATUS "Install directory of libserialport = ${install_dir}")
+include_directories(${install_dir}/include)
+
 # Add sources files
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
 list(REMOVE_ITEM SOURCES "src/main.cpp")
 add_library(sources_files STATIC ${SOURCES})
 
-# Use external dependencies => libserialport 
-ExternalProject_Get_property(libserialport install_dir)
-message(STATUS "Install directory of libserialport = ${install_dir}")
-include_directories(${install_dir}/include)
+add_dependencies(sources_files libserialport)
+
 target_link_libraries(sources_files PUBLIC ${install_dir}/lib/libserialport.a)
 
 add_executable(arduino-serial-port-communication src/main.cpp)

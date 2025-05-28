@@ -4,11 +4,14 @@
 
 #include "spm_app_prefs_dialog.h"
 #include "spm_app_window.h"
+#include "utils/serialport.h"
 
 SPMApp::SPMApp()
     : Gtk::Application("org.gtkmm.spmonitor",
                        Gio::Application::Flags::HANDLES_OPEN) {
   // Constructor implementation
+  add_main_option_entry(Gio::Application::OptionType::BOOL, "list", 'l',
+                        "Shows the list of availables serial port");
 }
 
 Glib::RefPtr<SPMApp> SPMApp::create() {
@@ -50,13 +53,13 @@ void SPMApp::on_activate() {
 }
 
 void SPMApp::on_open(const Gio::Application::type_vec_files &files,
-                           const Glib::ustring &hint) {
+                     const Glib::ustring &hint) {
   // The application has been asked to open some files,
   // so let's open a new view for each one.
+  std::cout << "debug" << std::endl;
   SPMAppWindow *appwindow = nullptr;
   auto windows = get_windows();
-  if (windows.size() > 0)
-    appwindow = dynamic_cast<SPMAppWindow *>(windows[0]);
+  if (windows.size() > 0) appwindow = dynamic_cast<SPMAppWindow *>(windows[0]);
 
   try {
     if (!appwindow) appwindow = create_appwindow();
@@ -71,6 +74,50 @@ void SPMApp::on_open(const Gio::Application::type_vec_files &files,
   }
 }
 
+template <typename T_ArgType>
+static bool get_arg_value(const Glib::RefPtr<Glib::VariantDict> &options,
+                          const Glib::ustring &arg_name, T_ArgType &arg_value) {
+  arg_value = T_ArgType();
+  if (options->lookup_value(arg_name, arg_value)) {
+    return true;
+  } else {
+    auto gvariant =
+        g_variant_dict_lookup_value(options->gobj(), arg_name.c_str(), nullptr);
+    if (!gvariant) {
+      // std::cerr << "the \"" << arg_name
+      //           << "\" value was not in the options VariantDict." <<
+      //           std::endl;
+    } else {
+      std::cerr << "the \"" << arg_name << "\" value was of type "
+                << g_variant_get_type_string(gvariant) << " instead of "
+                << Glib::Variant<T_ArgType>::variant_type().get_string()
+                << std::endl;
+    }
+    return false;
+  }
+}
+
+int SPMApp::on_command_line(
+    const Glib::RefPtr<Gio::ApplicationCommandLine> &command_line) {
+  const auto options = command_line->get_options_dict();
+  if (!options) std::cerr << G_STRFUNC << ": options is null." << std::endl;
+
+  bool list_serialport_value = false;
+  command_line_mode = get_arg_value(options, "list", list_serialport_value);
+
+  if (list_serialport_value) {
+    //SerialPort::list_available_serial_ports();
+    return EXIT_SUCCESS;
+  }
+
+  if (!command_line_mode) {
+    activate();
+    return EXIT_SUCCESS;
+  }
+
+  return EXIT_SUCCESS;
+}
+
 void SPMApp::on_action_preferences() {
   try {
     auto prefs_dialog = SPMAppPrefsDialog::create(*get_active_window());
@@ -79,11 +126,9 @@ void SPMApp::on_action_preferences() {
     prefs_dialog->signal_hide().connect(
         [prefs_dialog]() { delete prefs_dialog; });
   } catch (const Glib::Error &ex) {
-    std::cerr << "SPM::on_action_preferences(): " << ex.what()
-              << std::endl;
+    std::cerr << "SPM::on_action_preferences(): " << ex.what() << std::endl;
   } catch (const std::exception &ex) {
-    std::cerr << "SPM::on_action_preference(): " << ex.what()
-              << std::endl;
+    std::cerr << "SPM::on_action_preference(): " << ex.what() << std::endl;
   }
 }
 

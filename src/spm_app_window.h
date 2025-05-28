@@ -3,12 +3,14 @@
 
 #include <gtkmm-4.0/gtkmm.h>
 
+#include "utils/serialport.h"
+
 #define HAS_SEARCH_ENTRY2 GTKMM_CHECK_VERSION(4, 13, 2)
 
 class SPMAppWindow : public Gtk::ApplicationWindow {
  public:
   SPMAppWindow(BaseObjectType *cobject,
-                     const Glib::RefPtr<Gtk::Builder> &refBuilder);
+               const Glib::RefPtr<Gtk::Builder> &refBuilder);
 
   static SPMAppWindow *create();
 
@@ -21,6 +23,8 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   void on_find_word(const Gtk::Button *button);
   void on_reveal_child_changed();
 
+  // actions
+  // TODO: maybe all actions should be move it to private scope
   void update_words();
   void update_lines();
 
@@ -42,9 +46,14 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   Glib::RefPtr<Glib::Binding> m_binding_search_enabled;
   Glib::RefPtr<Glib::Binding> m_binding_lines_visible;
 
-  private: 
+ private:
   Gtk::TextView *get_text_view();
   void createView();
+
+  SerialPort *serialPort{nullptr};
+
+  // actions
+  void on_action_open_serial_port();
 };
 
 #endif  // SPM_APP_WINDOW_H

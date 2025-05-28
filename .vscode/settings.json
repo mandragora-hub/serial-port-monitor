@@ -9,12 +9,16 @@
     "crossfade",
     "gresource",
     "GTKMM",
+    "gvariant",
     "libserialport",
+    "sigc",
     "srcs"
   ],
   "files.associations": {
     "mdx": "markdown",
     "stdexcept": "cpp",
-    "optional": "cpp"
+    "optional": "cpp",
+    "ostream": "cpp",
+    "string": "cpp"
   }
 }

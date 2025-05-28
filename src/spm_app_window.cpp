@@ -6,6 +6,7 @@
 
 #include "resources.c"
 #include "spm_app.h"
+#include "spm_open_serial_port_dialog.h"
 
 SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
                            const Glib::RefPtr<Gtk::Builder> &refBuilder)
@@ -71,6 +72,8 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
   if (!menu) throw std::runtime_error("No \"menu\" object in gears_menu.ui");
 
   m_gears->set_menu_model(menu);
+  add_action("open-serial-port",
+             sigc::mem_fun(*this, &SPMAppWindow::on_action_open_serial_port));
   add_action(m_settings->create_action("show-words"));
 
   // Bind the "visible" property of m_lines to the win.show-lines action, to
@@ -86,7 +89,7 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
   set_icon_name("logo");
 
   // Remove this line and create a action.
-  createView();
+  // createView();
 }
 
 // static
@@ -144,24 +147,18 @@ void SPMAppWindow::createView() {
 void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   const Glib::ustring basename = file->get_basename();
 
-  // auto scrolled = Gtk::make_managed<Gtk::ScrolledWindow>();
-  // scrolled->set_expand(true);
-  // auto view = Gtk::make_managed<Gtk::TextView>();(
-  // view->set_editable(false);
-  // view->set_cursor_visible(false);
-  // scrolled->set_child(*view);
+  auto refBuilder = Gtk::Builder::create_from_resource(
+      "/org/gtkmm/spmonitor/resources/view.ui");
+  auto view_box = refBuilder->get_widget<Gtk::Box>("view-box");
+  if (!view_box)
+    throw std::runtime_error("No \"lines_label\" object in window.ui");
 
-  // auto refBuilder = Gtk::Builder::create_from_resource(
-  //     "/org/gtkmm/spmonitor/resources/view.ui");
-  // auto view_box = refBuilder->get_widget<Gtk::Box>("view-box");
-  // if (!view_box)
-  //   throw std::runtime_error("No \"lines_label\" object in window.ui");
+  auto view = refBuilder->get_widget<Gtk::TextView>("text-view");
+  if (!view) throw std::runtime_error("No \"lines_label\" object in window.ui");
 
-  // auto view = refBuilder->get_widget<Gtk::TextView>("text-view");
-  // if (!view) throw std::runtime_error("No \"lines_label\" object in
-  // window.ui");
+  m_stack->add(*view_box, basename, basename);
 
-  // m_stack->add(*view_box, basename, basename);
+serialPort = new SerialPort(basename, SP_MODE_READ_WRITE);
 
   // auto buffer = view->get_buffer();
   // try {
@@ -183,7 +180,6 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
 
   // m_search->set_sensitive(true);
 
-  std::cout << "ExampleAppWindow::open_file_view(" << std::endl;
   // update_words();
   // update_lines();
 }
@@ -290,3 +286,20 @@ void SPMAppWindow::update_lines() {
 // Gtk::TextView *SPMAppWindow::get_text_view() {
 //   // TODO: implemented
 // }
+
+void SPMAppWindow::on_action_open_serial_port() {
+  try {
+    auto window = dynamic_cast<Gtk::Window *>(this);
+    auto open_serial_port_dialog = SPMOpenSerialPortDialog::create(*window);
+    open_serial_port_dialog->present();
+
+    open_serial_port_dialog->signal_hide().connect(
+        [open_serial_port_dialog]() { delete open_serial_port_dialog; });
+  } catch (const Glib::Error &ex) {
+    std::cerr << "SPM::on_action_open_serial_port(): " << ex.what()
+              << std::endl;
+  } catch (const std::exception &ex) {
+    std::cerr << "SPM::on_action_open_serial_port(): " << ex.what()
+              << std::endl;
+  }
+}
