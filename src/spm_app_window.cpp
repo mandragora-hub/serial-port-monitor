@@ -106,7 +106,6 @@ SPMAppWindow *SPMAppWindow::create() {
 }
 
 void SPMAppWindow::createView() {
-  std::cout << "debug" << std::endl;
   // const Glib::ustring basename = file->get_basename();
   const Glib::ustring basename = "file->get_basename()";
 
@@ -158,7 +157,10 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
 
   m_stack->add(*view_box, basename, basename);
 
-serialPort = new SerialPort(basename, SP_MODE_READ_WRITE);
+  serialPort = new SerialPort(file->get_path(), SP_MODE_READ_WRITE);
+
+  m_Worker = SPWorker(serialPort);
+  m_WorkerThread = new std::thread([this] { m_Worker.do_work(this); });
 
   // auto buffer = view->get_buffer();
   // try {

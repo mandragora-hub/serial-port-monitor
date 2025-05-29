@@ -3,7 +3,10 @@
 
 #include <gtkmm-4.0/gtkmm.h>
 
+#include <thread>
+
 #include "utils/serialport.h"
+#include "utils/sp_worker.h"
 
 #define HAS_SEARCH_ENTRY2 GTKMM_CHECK_VERSION(4, 13, 2)
 
@@ -51,6 +54,9 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   void createView();
 
   SerialPort *serialPort{nullptr};
+  SPWorker m_Worker;
+  Glib::Dispatcher m_Dispatcher;
+  std::thread *m_WorkerThread;
 
   // actions
   void on_action_open_serial_port();

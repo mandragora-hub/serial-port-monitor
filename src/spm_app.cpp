@@ -56,7 +56,6 @@ void SPMApp::on_open(const Gio::Application::type_vec_files &files,
                      const Glib::ustring &hint) {
   // The application has been asked to open some files,
   // so let's open a new view for each one.
-  std::cout << "debug" << std::endl;
   SPMAppWindow *appwindow = nullptr;
   auto windows = get_windows();
   if (windows.size() > 0) appwindow = dynamic_cast<SPMAppWindow *>(windows[0]);
