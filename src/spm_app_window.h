@@ -4,6 +4,7 @@
 #include <gtkmm-4.0/gtkmm.h>
 
 #include <thread>
+#include <unordered_map>
 
 #include "utils/serialport.h"
 #include "utils/sp_worker.h"
@@ -25,6 +26,10 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   void on_visible_child_changed();
   void on_find_word(const Gtk::Button *button);
   void on_reveal_child_changed();
+  void on_clear_output(Gtk::TextView *textView);
+
+  void on_text_view_update(std::shared_ptr<SPWorker> worker,
+                           Gtk::TextView *textView);
 
   // actions
   // TODO: maybe all actions should be move it to private scope
@@ -53,10 +58,13 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   Gtk::TextView *get_text_view();
   void createView();
 
-  SerialPort *serialPort{nullptr};
-  SPWorker m_Worker;
+  // SerialPort *serialPort{nullptr};
+  // SPWorker m_Worker;
+
+  // std::unordered_map<std::string, SPWorker> m_WorkerTable;
+  // std::vector<SPWorker*> vector;
+
   Glib::Dispatcher m_Dispatcher;
-  std::thread *m_WorkerThread;
 
   // actions
   void on_action_open_serial_port();

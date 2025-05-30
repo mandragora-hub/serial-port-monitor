@@ -3,10 +3,10 @@
     <object class="GtkBox" id="view-box">
         <property name="orientation">vertical</property>
         <child>
-            <object class="GtkBox" id="sendbar-box">
+            <object class="GtkBox">
                 <property name="spacing">5</property>
                 <child>
-                    <object class="GtkEntry" id="sendbar">
+                    <object class="GtkEntry" id="input-entry">
                         <property name="hexpand">true</property>
                         <property name="placeholder-text">Type message to send</property>
                         <property name="margin-start">5</property>
@@ -15,7 +15,7 @@
                     </object>
                 </child>
                 <child>
-                    <object class="GtkButton" id="sendbar-button">
+                    <object class="GtkButton" id="input-send-button">
                         <property name="label">Send</property>
                         <property name="margin-end">5</property>
                         <property name="margin-top">5</property>
@@ -73,7 +73,7 @@
                             <object class="GtkDropDown" />
                         </child>
                         <child>
-                            <object class="GtkButton">
+                            <object class="GtkButton" id="clear-output-button">
                                 <property name="label">Clear output</property>
                             </object>
                         </child>

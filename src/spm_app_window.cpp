@@ -143,6 +143,7 @@ void SPMAppWindow::createView() {
   // update_words();
   // update_lines();
 }
+
 void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   const Glib::ustring basename = file->get_basename();
 
@@ -150,18 +151,35 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
       "/org/gtkmm/spmonitor/resources/view.ui");
   auto view_box = refBuilder->get_widget<Gtk::Box>("view-box");
   if (!view_box)
-    throw std::runtime_error("No \"lines_label\" object in window.ui");
+    throw std::runtime_error("No \"lines_label\" object in view.ui");
 
   auto view = refBuilder->get_widget<Gtk::TextView>("text-view");
-  if (!view) throw std::runtime_error("No \"lines_label\" object in window.ui");
+  if (!view) throw std::runtime_error("No \"lines_label\" object in view.ui");
+
+  auto clearOutputButton =
+      refBuilder->get_widget<Gtk::Button>("clear-output-button");
+  if (!clearOutputButton)
+    throw std::runtime_error("No \"clear-output-button\" object in view.ui");
+
+  auto input_entry = refBuilder->get_widget<Gtk::Entry>("input-entry");
+  if (!input_entry)
+    throw std::runtime_error("No \"input-entry\" object in view.ui");
 
   m_stack->add(*view_box, basename, basename);
 
-  serialPort = new SerialPort(file->get_path(), SP_MODE_READ_WRITE);
+  // SerialPort *sp = new SerialPort(file->get_path(), SP_MODE_READ_WRITE);
+  auto worker = std::make_shared<SPWorker>();
+  worker->m_dispatcher.connect(sigc::bind(
+      sigc::mem_fun(*this, &SPMAppWindow::on_text_view_update), worker, view));
+  worker->thread = new std::thread([this, worker] { worker->do_work(this); });
 
-  m_Worker = SPWorker(serialPort);
-  m_WorkerThread = new std::thread([this] { m_Worker.do_work(this); });
+  // Connect gui signal with slots
+  input_entry->signal_insert_text();
+  clearOutputButton->signal_clicked().connect(
+      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_clear_output), view));
 
+  // m_WorkerTable.insert({basename, m_Worker});
+  // view->set_buffer(m_Worker.get_rx_buffer());
   // auto buffer = view->get_buffer();
   // try {
   //   char *contents = nullptr;
@@ -226,6 +244,23 @@ void SPMAppWindow::on_find_word(const Gtk::Button *button) {
 }
 
 void SPMAppWindow::on_reveal_child_changed() { update_words(); }
+
+void SPMAppWindow::on_clear_output(Gtk::TextView *textView) {
+  textView->get_buffer()->set_text("");  // TODO; this is the correct clear way?
+}
+
+void SPMAppWindow::on_text_view_update(std::shared_ptr<SPWorker> worker,
+                                       Gtk::TextView *textView) {
+  auto buffer = textView->get_buffer();
+  Gtk::TextBuffer::iterator iter = buffer->end();
+
+  Glib::ustring entry = Glib::ustring(worker->get_rx_buffer()->data(),
+                                      worker->get_rx_buffer()->size());
+
+  buffer->insert(iter, entry);
+
+  worker->clearRX();
+}
 
 void SPMAppWindow::update_words() {
   // auto tab = dynamic_cast<Gtk::ScrolledWindow
