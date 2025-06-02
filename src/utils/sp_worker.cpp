@@ -11,29 +11,55 @@ SPWorker::SPWorker(SerialPort* port) : m_serialport(port) {
   // Unique id
   id = reinterpret_cast<uintptr_t>(port);
 
-  m_rx_buffer = new DynamicBuffer(0);
-  m_tx_buffer = new DynamicBuffer(0);
+  m_rx_buffer = new DynamicBuffer();
+  m_tx_buffer = new DynamicBuffer();
 }
 
 SPWorker::SPWorker() {
-  m_rx_buffer = new DynamicBuffer(0);
-  m_tx_buffer = new DynamicBuffer(0);
+  m_rx_buffer = new DynamicBuffer();
+  m_tx_buffer = new DynamicBuffer();
 }
 
-SPWorker::~SPWorker() {}
+SPWorker::~SPWorker() { delete port; }
 
 void SPWorker::do_work(SPMAppWindow* caller) {
   for (;;) {
+    // Send serial port data
+    {
+      if (m_tx_buffer->size() > 0) {
+        std::lock_guard<std::mutex> lock(mutex);
+        if (m_serialport->wait(100, SP_EVENT_TX_READY) >= 0) {
+          m_serialport->send_data(m_tx_buffer->data(), m_tx_buffer->size());
+
+          m_rx_buffer->append(m_tx_buffer->data(), m_tx_buffer->size());
+          m_tx_buffer->clear();
+        }
+      }
+    }
+
+    // Receive serial port data
     {
       std::lock_guard<std::mutex> lock(mutex);
 
-      // TODO:: get text from serial port, with can have a flag app for activate
-      // simalete mode maybe !!
-      std::string text = "simulate rx buffer entry.\n";
+      if (m_serialport->wait(100, SP_EVENT_RX_READY) >= 0) {
+        // TODO:: get text from serial port, with can have a flag app for
+        // activate
+        // simalete mode maybe !!
+        // std::string text = "simulate rx buffer entry.\n";
 
-      m_rx_buffer->append(text.c_str(), text.size());
+        int bytes_waiting = m_serialport->input_waiting();
+        void* buf = malloc(bytes_waiting);
+        if (!buf) continue;
+
+        m_serialport->read_data(buf, bytes_waiting);
+        std::string text(static_cast<char*>(buf), bytes_waiting);
+
+        free(buf);
+        m_rx_buffer->append(text.c_str(), text.size());
+      }
     }
 
+    // Rest
     m_dispatcher.emit();
     std::this_thread::sleep_for(
         std::chrono::milliseconds(MILLISECOND_THREAD_SLEEP));
@@ -43,6 +69,11 @@ void SPWorker::do_work(SPMAppWindow* caller) {
 void SPWorker::stop_work() {}
 
 bool SPWorker::has_stopped() const { return false; }
+
+void SPWorker::send_data(const char* data, size_t size) {
+  std::lock_guard<std::mutex> lock(mutex);
+  m_tx_buffer->append(data, size);
+}
 
 void SPWorker::clearRX() {
   std::lock_guard<std::mutex> lock(mutex);

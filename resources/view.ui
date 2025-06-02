@@ -52,12 +52,12 @@
                     <object class="GtkBox">
                         <property name="spacing">5</property>
                         <child>
-                            <object class="GtkCheckButton">
+                            <object class="GtkCheckButton" id="autoscroll-check-button">
                                 <property name="label">Autoscroll</property>
                             </object>
                         </child>
                         <child>
-                            <object class="GtkCheckButton">
+                            <object class="GtkCheckButton" id="show-timestamp-check-button">
                                 <property name="label">Show timestamp</property>
                             </object>
                         </child>
@@ -70,7 +70,7 @@
                             <object class="GtkDropDown" />
                         </child>
                         <child>
-                            <object class="GtkDropDown" />
+                            <object class="GtkDropDown" id="bauds-dropdown"/>
                         </child>
                         <child>
                             <object class="GtkButton" id="clear-output-button">

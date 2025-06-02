@@ -21,6 +21,7 @@ class SPWorker {
   void stop_work();
   bool has_stopped() const;
 
+  void send_data(const char *data, size_t size);
   void clearRX();
 
   bool operator==(const SPWorker &other) const { return id == other.id; }
@@ -47,6 +48,8 @@ class SPWorker {
 
   bool m_shall_stop;
   bool m_has_stopped;
+
+  SerialPort *port;
 };
 
 // provide a hash function for use with std::map

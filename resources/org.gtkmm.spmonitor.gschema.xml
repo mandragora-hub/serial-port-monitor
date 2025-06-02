@@ -22,4 +22,32 @@
       <description>whether to show a word list in the sidebar</description>
     </key>
   </schema>
+  <schema id="org.gtkmm.spmonitor.ports">
+    <key name="bauds" type="s">
+      <default>'9600 bauds'</default>
+      <summary>Bauds</summary>
+      <description>Bit for rate</description>
+    </key>
+    <!-- <key name="transition" type="s">
+      <choices>
+        <choice value="none" />
+        <choice value="crossfade" />
+        <choice value="slide-left-right" />
+      </choices>
+      <default>'none'</default>
+      <summary>Transition</summary>
+      <description></description>
+    </key> -->
+    <key name="autoscroll" type="b">
+      <default>false</default>
+      <summary>Autoscroll</summary>
+      <description>Keep the text view at the end</description>
+    </key>
+    <key name="show-timestamp" type="b">
+      <default>false</default>
+      <summary>Show timestamp</summary>
+      <description>Show the timestamp of the momment send and receive data</description>
+    </key>
+  </schema>
+
 </schemalist>

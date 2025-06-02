@@ -27,7 +27,8 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   void on_find_word(const Gtk::Button *button);
   void on_reveal_child_changed();
   void on_clear_output(Gtk::TextView *textView);
-
+  void on_activate_entry_and_clicked_send_button(
+      Gtk::Entry *entry, std::shared_ptr<SPWorker> worker);
   void on_text_view_update(std::shared_ptr<SPWorker> worker,
                            Gtk::TextView *textView);
 
@@ -68,6 +69,9 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
 
   // actions
   void on_action_open_serial_port();
+  
+
+  std::string normalize_port_path(std::string port_path);
 };
 
 #endif  // SPM_APP_WINDOW_H

@@ -1,5 +1,6 @@
 #include "spm_app_window.h"
 
+#include <format>
 #include <iostream>
 #include <set>
 #include <stdexcept>
@@ -165,16 +166,62 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   if (!input_entry)
     throw std::runtime_error("No \"input-entry\" object in view.ui");
 
+  auto input_send_button =
+      refBuilder->get_widget<Gtk::Button>("input-send-button");
+  if (!input_send_button)
+    throw std::runtime_error("No \"input-send-button\" object in view.ui");
+
+  auto autoscroll_check_button =
+      refBuilder->get_widget<Gtk::CheckButton>("autoscroll-check-button");
+  if (!autoscroll_check_button)
+    throw std::runtime_error(
+        "No \"autoscroll-check-button\" object in view.ui");
+
+  auto show_timestamp_check_button =
+      refBuilder->get_widget<Gtk::CheckButton>("show-timestamp-check-button");
+  if (!show_timestamp_check_button)
+    throw std::runtime_error(
+        "No \"show-timestamp-check-button\" object in view.ui");
+
+  auto bauds_dropdown = refBuilder->get_widget<Gtk::DropDown>("bauds-dropdown");
+  if (!bauds_dropdown)
+    throw std::runtime_error("No \"bauds-dropdown\" object in view.ui");
+
+  auto bauds = Gtk::StringList::create();
+  for (int rate : SerialPort::commons_bauds) {
+    bauds->append(Glib::ustring::compose("%1 bauds", rate));
+  }
+  bauds_dropdown->set_model(bauds);
+  // bauds_dropdown->property_selected().signal_changed().connect();
+
+  // Try to create the serial ports
+  SerialPort *sp = SerialPort::create(file->get_path(), SP_MODE_READ_WRITE);
+  if (!sp) throw std::runtime_error("Cannot find the serial port");
+
   m_stack->add(*view_box, basename, basename);
 
-  // SerialPort *sp = new SerialPort(file->get_path(), SP_MODE_READ_WRITE);
-  auto worker = std::make_shared<SPWorker>();
+  // ports settings
+  std::string port_setting_path = std::format(
+      "/org/gtkmm/spmonitor/ports/{}/", normalize_port_path(file->get_path()));
+  Glib::RefPtr<Gio::Settings> port_settings =
+      Gio::Settings::create("org.gtkmm.spmonitor.ports", port_setting_path);
+  port_settings->bind("autoscroll", autoscroll_check_button->property_active());
+  port_settings->bind("show-timestamp",
+                      show_timestamp_check_button->property_active());
+// port_settings->bind("bauds", bauds_dropdown->property_model());
+
+  auto worker = std::make_shared<SPWorker>(sp);
   worker->m_dispatcher.connect(sigc::bind(
       sigc::mem_fun(*this, &SPMAppWindow::on_text_view_update), worker, view));
   worker->thread = new std::thread([this, worker] { worker->do_work(this); });
 
   // Connect gui signal with slots
-  input_entry->signal_insert_text();
+  Glib::SlotSpawnChildSetup send_entry_to_worker_slot = sigc::bind(
+      sigc::mem_fun(*this,
+                    &SPMAppWindow::on_activate_entry_and_clicked_send_button),
+      input_entry, worker);
+  input_entry->signal_activate().connect(send_entry_to_worker_slot);
+  input_send_button->signal_clicked().connect(send_entry_to_worker_slot);
   clearOutputButton->signal_clicked().connect(
       sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_clear_output), view));
 
@@ -247,6 +294,14 @@ void SPMAppWindow::on_reveal_child_changed() { update_words(); }
 
 void SPMAppWindow::on_clear_output(Gtk::TextView *textView) {
   textView->get_buffer()->set_text("");  // TODO; this is the correct clear way?
+}
+
+void SPMAppWindow::on_activate_entry_and_clicked_send_button(
+    Gtk::Entry *entry, std::shared_ptr<SPWorker> worker) {
+  Glib::ustring msg = entry->get_text();
+  msg.append("\n");
+  worker->send_data(msg.c_str(), msg.size());
+  entry->set_text("");
 }
 
 void SPMAppWindow::on_text_view_update(std::shared_ptr<SPWorker> worker,
@@ -339,4 +394,12 @@ void SPMAppWindow::on_action_open_serial_port() {
     std::cerr << "SPM::on_action_open_serial_port(): " << ex.what()
               << std::endl;
   }
+}
+
+std::string SPMAppWindow::normalize_port_path(std::string port_path) {
+  size_t pos = port_path.rfind("/");
+  std::string port_name =
+      (pos == std::string::npos) ? port_path : port_path.substr(pos + 1);
+
+  return std::string();
 }

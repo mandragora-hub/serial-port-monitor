@@ -1,7 +1,14 @@
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 4.0.2)
+
 project(arduino-serial-port-communication VERSION 0.1.0 LANGUAGES C CXX)
 
-set (CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+message(DEBUG "C++ compiler: ${CMAKE_CXX_COMPILER}")
+message(DEBUG "C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+
 
 # Installing GTKMM library
 find_package(PkgConfig REQUIRED)
