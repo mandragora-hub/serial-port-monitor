@@ -8,6 +8,7 @@
 #include "resources.c"
 #include "spm_app.h"
 #include "spm_open_serial_port_dialog.h"
+#include "utils/utils.h"
 
 SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
                            const Glib::RefPtr<Gtk::Builder> &refBuilder)
@@ -88,6 +89,33 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
   Gtk::IconTheme::get_for_display(get_display())
       ->add_resource_path("/org/gtkmm/spmonitor/resources");
   set_icon_name("logo");
+
+  // Create welcome message
+  try {
+    auto welcome_message = Gtk::make_managed<Gtk::Label>();
+    auto welcome_box = Gtk::make_managed<Gtk::CenterBox>();
+
+    Glib::RefPtr<Gio::File> msg_file = Gio::File::create_for_uri(
+        "resource:///org/gtkmm/spmonitor/resources/welcome_msg.xml");
+    char *contents = nullptr;
+    gsize length = 0;
+
+    msg_file->load_contents(contents, length);
+
+    welcome_message->set_markup(Glib::ustring(contents));
+    // welcome_message->set_wrap(true);
+    welcome_message->set_justify(Gtk::Justification::CENTER);
+
+    welcome_box->set_center_widget(*welcome_message);
+    welcome_box->set_expand();
+
+    m_stack->add(*welcome_box, "Welcome", "Welcome");
+
+    g_free(contents);
+
+  } catch (const Glib::Error &ex) {
+    std::cerr << ex.what() << std::endl;
+  }
 
   // Remove this line and create a action.
   // createView();
@@ -208,7 +236,12 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   port_settings->bind("autoscroll", autoscroll_check_button->property_active());
   port_settings->bind("show-timestamp",
                       show_timestamp_check_button->property_active());
-// port_settings->bind("bauds", bauds_dropdown->property_model());
+
+  // TODO: use unsigned int
+  // TODO connect dropdown signal
+  int bauds_settings = port_settings->get_int("bauds");
+  int in = Utils::indexOf<int>(SerialPort::commons_bauds, bauds_settings);
+  bauds_dropdown->set_selected(in);
 
   auto worker = std::make_shared<SPWorker>(sp);
   worker->m_dispatcher.connect(sigc::bind(

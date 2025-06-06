@@ -26,6 +26,7 @@ class SPMApp : public Gtk::Application {
 
   // Menu actions
   void on_action_preferences();
+  void on_action_about();
   void on_action_quit();
 
   // If this is true the gui will not show

@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "spm_about_dialog.h"
 #include "spm_app_prefs_dialog.h"
 #include "spm_app_window.h"
 #include "utils/serialport.h"
@@ -35,6 +36,7 @@ void SPMApp::on_startup() {
 
   add_action("preferences",
              sigc::mem_fun(*this, &SPMApp::on_action_preferences));
+  add_action("show-about", sigc::mem_fun(*this, &SPMApp::on_action_about));
   add_action("quit", sigc::mem_fun(*this, &SPMApp::on_action_quit));
   set_accel_for_action("app.quit", "<Ctrl>Q");
 }
@@ -105,7 +107,7 @@ int SPMApp::on_command_line(
   command_line_mode = get_arg_value(options, "list", list_serialport_value);
 
   if (list_serialport_value) {
-    //SerialPort::list_available_serial_ports();
+    // SerialPort::list_available_serial_ports();
     return EXIT_SUCCESS;
   }
 
@@ -128,6 +130,20 @@ void SPMApp::on_action_preferences() {
     std::cerr << "SPM::on_action_preferences(): " << ex.what() << std::endl;
   } catch (const std::exception &ex) {
     std::cerr << "SPM::on_action_preference(): " << ex.what() << std::endl;
+  }
+}
+
+void SPMApp::on_action_about() {
+  try {
+    auto about_dialog = SPMAboutDialog::create(*get_active_window());
+    about_dialog->present();
+
+    about_dialog->signal_hide().connect(
+        [about_dialog]() { delete about_dialog; });
+  } catch (const Glib::Error &ex) {
+    std::cerr << "SPM::on_action_about(): " << ex.what() << std::endl;
+  } catch (const std::exception &ex) {
+    std::cerr << "SPM::on_action_about(): " << ex.what() << std::endl;
   }
 }
 

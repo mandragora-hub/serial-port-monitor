@@ -11,6 +11,7 @@
     "GTKMM",
     "gvariant",
     "libserialport",
+    "pango",
     "sigc",
     "srcs"
   ],

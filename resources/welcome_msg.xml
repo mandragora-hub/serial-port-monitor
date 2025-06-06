@@ -1,0 +1,14 @@
+<markup>
+    <b>
+        <span foreground="green">🟢 Serial Port Monitor started successfully.</span>
+    </b>
+       
+    <span
+        size="large" weight="bold">Welcome to <span foreground="#007ACC">Serial Port Monitor</span></span>
+    — a tool for <i>developers</i>, <i>engineers</i>, and <i>hobbyists</i> to interact with and
+    debug serial devices in real time. <span foreground="forestgreen">✅ Ready</span> to scan and
+    connect to available serial ports. <span foreground="dodgerblue">📡 Monitor</span>, send, and
+    log serial communication with ease. <span foreground="sienna">💾 Port settings</span> will be
+    saved automatically. <span weight="bold">Need help?</span> Visit the Help menu or press <b>F1</b>
+    . <span foreground="gray" style="italic">Happy debugging!</span>
+</markup>

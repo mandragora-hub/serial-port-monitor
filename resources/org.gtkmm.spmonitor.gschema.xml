@@ -23,8 +23,8 @@
     </key>
   </schema>
   <schema id="org.gtkmm.spmonitor.ports">
-    <key name="bauds" type="s">
-      <default>'9600 bauds'</default>
+    <key name="bauds" type="i">
+      <default>9600</default>
       <summary>Bauds</summary>
       <description>Bit for rate</description>
     </key>

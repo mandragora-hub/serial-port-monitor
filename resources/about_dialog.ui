@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <object class="GtkWindow" id="about_dialog">
+        <property name="title">About</property>
+        <property name="resizable">false</property>
+        <property name="modal">true</property>
+        <property name="hide-on-close">true</property>
+        <child>
+            <object class="GtkBox">
+                <child>
+                    <object class="GtkLabel" id="content-text-label" />
+                </child>
+            </object>
+        </child>
+    </object>
+</interface>
