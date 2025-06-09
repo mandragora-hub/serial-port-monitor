@@ -76,6 +76,8 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
   m_gears->set_menu_model(menu);
   add_action("open-serial-port",
              sigc::mem_fun(*this, &SPMAppWindow::on_action_open_serial_port));
+  add_action("close-tab",
+             sigc::mem_fun(*this, &SPMAppWindow::on_close_current_tab));
   add_action(m_settings->create_action("show-words"));
 
   // Bind the "visible" property of m_lines to the win.show-lines action, to
@@ -236,16 +238,17 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   port_settings->bind("show-timestamp",
                       show_timestamp_check_button->property_active());
 
-  // TODO: use unsigned int
-  // TODO connect dropdown signal
-  int bauds_settings = port_settings->get_int("bauds");
+  int bauds_settings = port_settings->get_uint("bauds");
   int in = Utils::indexOf<int>(SerialPort::commons_bauds, bauds_settings);
   bauds_dropdown->set_selected(in);
 
   auto worker = std::make_shared<SPWorker>(sp);
+  worker->set_name(basename);
   worker->m_dispatcher.connect(sigc::bind(
       sigc::mem_fun(*this, &SPMAppWindow::on_text_view_update), worker, view));
   worker->thread = new std::thread([this, worker] { worker->do_work(this); });
+
+  sp_workers.push_back(worker);
 
   // Connect gui signal with slots
   Glib::SlotSpawnChildSetup send_entry_to_worker_slot = sigc::bind(
@@ -257,7 +260,7 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   clearOutputButton->signal_clicked().connect(
       sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_clear_output), view));
   bauds_dropdown->property_selected().signal_changed().connect(
-      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_buads_dropdown_changed),
+      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_bauds_dropdown_changed),
                  bauds_dropdown, port_settings));
 
   // m_WorkerTable.insert({basename, m_Worker});
@@ -327,11 +330,10 @@ void SPMAppWindow::on_find_word(const Gtk::Button *button) {
 
 void SPMAppWindow::on_reveal_child_changed() { update_words(); }
 
-void SPMAppWindow::on_buads_dropdown_changed(Gtk::DropDown *dropdown, Glib::RefPtr<Gio::Settings> port_settings) {
+void SPMAppWindow::on_bauds_dropdown_changed(
+    Gtk::DropDown *dropdown, Glib::RefPtr<Gio::Settings> port_settings) {
   const int bauds_rate = SerialPort::commons_bauds.at(dropdown->get_selected());
-  port_settings->set_int("bauds", 110);
-
-  // std::cout << port_settings->
+  port_settings->set_uint("bauds", bauds_rate);
 }
 
 void SPMAppWindow::on_clear_output(Gtk::TextView *textView) {
@@ -348,6 +350,7 @@ void SPMAppWindow::on_activate_entry_and_clicked_send_button(
 
 void SPMAppWindow::on_text_view_update(std::shared_ptr<SPWorker> worker,
                                        Gtk::TextView *textView) {
+  if (worker->get_shall_stop()) return;
   auto buffer = textView->get_buffer();
   Gtk::TextBuffer::iterator iter = buffer->end();
 
@@ -357,6 +360,46 @@ void SPMAppWindow::on_text_view_update(std::shared_ptr<SPWorker> worker,
   buffer->insert(iter, entry);
 
   worker->clearRX();
+}
+
+void SPMAppWindow::on_close_current_tab() {
+  Gtk::Widget *current = m_stack->get_visible_child();
+  if (!current) return;
+
+  // Stop worker
+  const Glib::ustring basename = m_stack->get_visible_child_name();
+  for (auto worker : sp_workers) {
+    if (basename == worker->get_name()) {
+      worker->stop_work();
+
+      auto it = std::find(sp_workers.begin(), sp_workers.end(), worker);
+      std::size_t index = std::distance(sp_workers.begin(), it);
+      sp_workers.erase(sp_workers.begin() + index);
+      break;
+    }
+  }
+
+  // ----
+
+  std::vector<Gtk::Widget *> children;
+  if (Gtk::Widget *child = m_stack->get_first_child()) {
+    do {
+      children.push_back(child);
+      child = child->get_next_sibling();
+    } while (child);
+  }
+
+  auto it = std::find(children.begin(), children.end(), current);
+  std::size_t index = std::distance(children.begin(), it);
+
+  children.erase(children.begin() + index);
+  m_stack->remove(*current);
+
+  if (children.size() <= 0) return;
+  size_t next_child_index = index <= 0 ? index : index - 1;
+
+  auto next_child = children.at(next_child_index);
+  if (next_child) m_stack->set_visible_child(*next_child);
 }
 
 void SPMAppWindow::update_words() {
@@ -443,5 +486,5 @@ std::string SPMAppWindow::normalize_port_path(std::string port_path) {
   std::string port_name =
       (pos == std::string::npos) ? port_path : port_path.substr(pos + 1);
 
-  return std::string();
+  return port_name;
 }

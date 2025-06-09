@@ -39,6 +39,8 @@ void SPMApp::on_startup() {
   add_action("show-about", sigc::mem_fun(*this, &SPMApp::on_action_about));
   add_action("quit", sigc::mem_fun(*this, &SPMApp::on_action_quit));
   set_accel_for_action("app.quit", "<Ctrl>Q");
+  set_accel_for_action("win.close-tab", "<Ctrl>W");
+
 }
 
 void SPMApp::on_activate() {

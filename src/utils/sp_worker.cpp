@@ -20,10 +20,24 @@ SPWorker::SPWorker() {
   m_tx_buffer = new DynamicBuffer();
 }
 
-SPWorker::~SPWorker() { delete port; }
+SPWorker::~SPWorker() {
+  std::cout << "Worker destructor" << std::endl;
+  if (thread) {
+    if (thread->joinable()) thread->join();
+    delete thread;
+    thread = nullptr;
+  }
+  delete port;
+}
 
 void SPWorker::do_work(SPMAppWindow* caller) {
-  for (;;) {
+  for (;;) {  // Run until break
+    std::cout << "thread logs" << std::endl;
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      m_has_stopped = false;
+    }
+
     // Send serial port data
     {
       if (m_tx_buffer->size() > 0) {
@@ -44,7 +58,7 @@ void SPWorker::do_work(SPMAppWindow* caller) {
       if (m_serialport->wait(100, SP_EVENT_RX_READY) >= 0) {
         // TODO:: get text from serial port, with can have a flag app for
         // activate
-        // simalete mode maybe !!
+        // simulate mode maybe !!
         // std::string text = "simulate rx buffer entry.\n";
 
         int bytes_waiting = m_serialport->input_waiting();
@@ -59,6 +73,12 @@ void SPWorker::do_work(SPMAppWindow* caller) {
       }
     }
 
+    if (m_shall_stop) {
+      std::lock_guard<std::mutex> lock(mutex);
+      m_has_stopped = true;
+      break;
+    }
+
     // Rest
     m_dispatcher.emit();
     std::this_thread::sleep_for(
@@ -66,9 +86,15 @@ void SPWorker::do_work(SPMAppWindow* caller) {
   }
 }
 
-void SPWorker::stop_work() {}
+void SPWorker::stop_work() {
+  std::lock_guard<std::mutex> lock(mutex);
+  m_shall_stop = true;
+}
 
-bool SPWorker::has_stopped() const { return false; }
+bool SPWorker::has_stopped() const {
+  std::lock_guard<std::mutex> lock(mutex);
+  return m_has_stopped;
+}
 
 void SPWorker::send_data(const char* data, size_t size) {
   std::lock_guard<std::mutex> lock(mutex);

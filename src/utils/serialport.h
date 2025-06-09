@@ -26,7 +26,7 @@ class SerialPort {
   static const std::vector<int> commons_bauds;
 
  private:
-  struct sp_port* port;
+  struct sp_port* port = nullptr;
   unsigned int timeout = 1000;
 
   int check(enum sp_return result);

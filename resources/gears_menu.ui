@@ -29,6 +29,10 @@
         </section>
         <section>
             <item>
+                <attribute name="label" translatable="yes">_Close tab</attribute>
+                <attribute name="action">win.close-tab</attribute>
+            </item>
+            <item>
                 <attribute name="label" translatable="yes">_Quit</attribute>
                 <attribute name="action">app.quit</attribute>
             </item>

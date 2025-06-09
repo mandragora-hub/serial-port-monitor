@@ -24,6 +24,11 @@ class SPWorker {
   void send_data(const char *data, size_t size);
   void clearRX();
 
+  void set_name(Glib::ustring new_name) { name = new_name; }
+  const Glib::ustring get_name() const { return name; }
+
+  bool get_shall_stop() const { return m_shall_stop; }
+
   bool operator==(const SPWorker &other) const { return id == other.id; }
 
   uintptr_t getID() const { return id; }
@@ -39,6 +44,7 @@ class SPWorker {
   // Synchronizes access to member data.
   mutable std::mutex mutex;
 
+  Glib::ustring name;
   uintptr_t id;
 
   SerialPort *m_serialport = {nullptr};
@@ -46,8 +52,8 @@ class SPWorker {
   DynamicBuffer *m_rx_buffer = {nullptr};
   DynamicBuffer *m_tx_buffer = {nullptr};
 
-  bool m_shall_stop;
-  bool m_has_stopped;
+  bool m_shall_stop = false;
+  bool m_has_stopped = false;
 
   SerialPort *port;
 };

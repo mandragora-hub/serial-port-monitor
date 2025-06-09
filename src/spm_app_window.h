@@ -26,13 +26,14 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   void on_visible_child_changed();
   void on_find_word(const Gtk::Button *button);
   void on_reveal_child_changed();
-  void on_buads_dropdown_changed(Gtk::DropDown *dropdown,
+  void on_bauds_dropdown_changed(Gtk::DropDown *dropdown,
                                  Glib::RefPtr<Gio::Settings> port_settings);
   void on_clear_output(Gtk::TextView *textView);
   void on_activate_entry_and_clicked_send_button(
       Gtk::Entry *entry, std::shared_ptr<SPWorker> worker);
   void on_text_view_update(std::shared_ptr<SPWorker> worker,
                            Gtk::TextView *textView);
+  void on_close_current_tab();
 
   // actions
   // TODO: maybe all actions should be move it to private scope
@@ -65,7 +66,7 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   // SPWorker m_Worker;
 
   // std::unordered_map<std::string, SPWorker> m_WorkerTable;
-  // std::vector<SPWorker*> vector;
+  std::vector<std::shared_ptr<SPWorker>> sp_workers;
 
   Glib::Dispatcher m_Dispatcher;
 
