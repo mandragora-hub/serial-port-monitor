@@ -2,19 +2,23 @@
     <span size="x-large" weight="bold">About Serial Port Monitor</span>
     <span>
         <b>Serial Port Monitor</b> is a powerful, lightweight tool designed for <i>developers</i>, <i>
-    engineers</i>, and <i>tech enthusiasts</i> who work with serial communication. Whether you're
-    building embedded systems, debugging hardware, or analyzing data streams, this application
-    provides a clean, intuitive interface to help you get the job done efficiently. </span> 
-    
+        engineers</i>, and <i>tech enthusiasts</i> who work with serial communication. Whether
+        you're building embedded systems, debugging hardware, or analyzing data streams, this
+        application provides a clean, intuitive interface to help you get the job done efficiently. </span>
+
     <span
         foreground="#007ACC">Key Features:</span>
+        &#8226; <b>Real-time monitoring</b> of serial data.
+        &#8226; <b>Send and receive</b> raw bytes or formatted text.
+        &#8226; <b>Automatic detection</b> of available serial ports. 
+        &#8226; <b>Session logging</b> and export support.
+        &#8226; <b>Customizable port settings</b> (baud rate, parity, stop bits, etc.).
+        &#8226; <b>Dark mode support</b> for comfortable extended use. 
     
-    <b>Real-time monitoring</b> of serial data <b>Send
-    and receive</b> raw bytes or formatted text <b>Automatic detection</b> of available serial ports <b>Session
-    logging</b> and export support <b>Customizable port settings</b> (baud rate, parity, stop bits,
-    etc.) <b>Dark mode support</b> for comfortable extended use <span foreground="forestgreen">Your
-    port settings and preferences are saved automatically</span>, making it easier to pick up right
-    where you left off. <span weight="bold">Need support?</span> Visit the <b>Help</b> menu, press <b>
-    F1</b>, or check out the official documentation and issue tracker. <span foreground="gray"
+    <span foreground="forestgreen">Your port settings and preferences are saved automatically</span>, making it easier to pick up right where you left off.
+    <span weight="bold">Need support?</span> Visit the <b>Help</b>menu, press <b>F1</b>, or check out the official documentation and issue tracker.  
+
+    <span
+        foreground="gray"
         style="italic">Made with care to make serial debugging painless.</span>
 </markup>

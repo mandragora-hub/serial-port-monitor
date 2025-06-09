@@ -220,7 +220,6 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
     bauds->append(Glib::ustring::compose("%1 bauds", rate));
   }
   bauds_dropdown->set_model(bauds);
-  // bauds_dropdown->property_selected().signal_changed().connect();
 
   // Try to create the serial ports
   SerialPort *sp = SerialPort::create(file->get_path(), SP_MODE_READ_WRITE);
@@ -257,6 +256,9 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   input_send_button->signal_clicked().connect(send_entry_to_worker_slot);
   clearOutputButton->signal_clicked().connect(
       sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_clear_output), view));
+  bauds_dropdown->property_selected().signal_changed().connect(
+      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_buads_dropdown_changed),
+                 bauds_dropdown, port_settings));
 
   // m_WorkerTable.insert({basename, m_Worker});
   // view->set_buffer(m_Worker.get_rx_buffer());
@@ -324,6 +326,13 @@ void SPMAppWindow::on_find_word(const Gtk::Button *button) {
 }
 
 void SPMAppWindow::on_reveal_child_changed() { update_words(); }
+
+void SPMAppWindow::on_buads_dropdown_changed(Gtk::DropDown *dropdown, Glib::RefPtr<Gio::Settings> port_settings) {
+  const int bauds_rate = SerialPort::commons_bauds.at(dropdown->get_selected());
+  port_settings->set_int("bauds", 110);
+
+  // std::cout << port_settings->
+}
 
 void SPMAppWindow::on_clear_output(Gtk::TextView *textView) {
   textView->get_buffer()->set_text("");  // TODO; this is the correct clear way?
