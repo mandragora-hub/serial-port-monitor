@@ -28,6 +28,16 @@
       <summary>Bauds</summary>
       <description>Bit for rate</description>
     </key>
+    <key name="bits" type="u">
+      <default>8</default>
+      <summary>Bits</summary>
+      <description>Data bits per frame.</description>
+    </key>
+    <key name="stopbits" type="u">
+      <default>1</default>
+      <summary>Stopbits</summary>
+      <description>Stop bits</description>
+    </key>
     <!-- <key name="transition" type="s">
       <choices>
         <choice value="none" />

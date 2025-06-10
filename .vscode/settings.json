@@ -13,7 +13,8 @@
     "libserialport",
     "pango",
     "sigc",
-    "srcs"
+    "srcs",
+    "stopbits"
   ],
   "files.associations": {
     "mdx": "markdown",

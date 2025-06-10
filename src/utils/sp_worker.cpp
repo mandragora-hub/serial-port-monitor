@@ -15,11 +15,6 @@ SPWorker::SPWorker(SerialPort* port) : m_serialport(port) {
   m_tx_buffer = new DynamicBuffer();
 }
 
-SPWorker::SPWorker() {
-  m_rx_buffer = new DynamicBuffer();
-  m_tx_buffer = new DynamicBuffer();
-}
-
 SPWorker::~SPWorker() {
   if (thread) {
     if (thread->joinable()) thread->join();
@@ -31,7 +26,6 @@ SPWorker::~SPWorker() {
 
 void SPWorker::do_work(SPMAppWindow* caller) {
   for (;;) {  // Run until break
-    std::cout << "thread logs" << std::endl;
     {
       std::lock_guard<std::mutex> lock(mutex);
       m_has_stopped = false;

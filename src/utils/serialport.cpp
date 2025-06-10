@@ -6,18 +6,46 @@ SerialPort::SerialPort(std::string port_name, sp_mode flags) {
   check(sp_get_port_by_name(port_name.c_str(), &port));
   check(sp_open(port, flags));
 
-  // TODO, manually setting in gui
-  std::cout << "Setting port to 9600 8N1, no flow control." << std::endl;
-  check(sp_set_baudrate(port, 9600));
-  check(sp_set_bits(port, 8));
-  check(sp_set_parity(port, SP_PARITY_NONE));
-  check(sp_set_stopbits(port, 1));
-  check(sp_set_flowcontrol(port, SP_FLOWCONTROL_NONE));
+  // Default settings
+  std::cout << "Setting port " << port_name << " to 9600 8N1, no flow control."
+            << std::endl;
+  config = create_default_settings();
+
+  std::cout << "Applying new configuration" << std::endl;
+  check(sp_set_config(port, config));
 }
+
+// SerialPort::SerialPort(std::string port_name, sp_mode flags) {
+//   check(sp_get_port_by_name(port_name.c_str(), &port));
+//   check(sp_open(port, flags));
+
+//     /* Allocate config. */
+//   check(sp_new_config(&config));
+
+//   int baudrate, bits, stopbits;
+//   enum sp_parity parity;
+
+//   struct sp_port_config *other_config;
+//   check(sp_new_config(&other_config));
+//   check(sp_set_config_baudrate(other_config, 9600));
+//   check(sp_set_config_bits(other_config, 7));
+//   check(sp_set_config_parity(other_config, SP_PARITY_EVEN));
+//   check(sp_set_config_stopbits(other_config, 2));
+//   check(sp_set_config_flowcontrol(other_config, SP_FLOWCONTROL_XONXOFF));
+
+//   // TODO, manually setting in gui
+//   std::cout << "Setting port to 9600 8N1, no flow control." << std::endl;
+//   check(sp_set_baudrate(port, 9600));
+//   check(sp_set_bits(port, 8));
+//   check(sp_set_parity(port, SP_PARITY_NONE));
+//   check(sp_set_stopbits(port, 1));
+//   check(sp_set_flowcontrol(port, SP_FLOWCONTROL_NONE));
+// }
 
 SerialPort::~SerialPort() {
   check(sp_close(port));
   sp_free_port(port);
+  sp_free_config(config);
 }
 
 SerialPort *SerialPort::create(std::string port_name, sp_mode flags) {
@@ -38,6 +66,34 @@ int SerialPort::input_waiting() {
 
 int SerialPort::send_data(const void *data, size_t count) {
   return check(sp_blocking_write(port, data, count, timeout));
+}
+
+void SerialPort::show_config() {
+  int baudrate, bits, stopbits;
+  enum sp_parity parity;
+
+  check(sp_get_config_baudrate(config, &baudrate));
+  check(sp_get_config_bits(config, &bits));
+  check(sp_get_config_stopbits(config, &stopbits));
+  check(sp_get_config_parity(config, &parity));
+
+  std::cout << "Baudrate:" << baudrate << ", data bits:" << bits
+            << ", parity: " << parity_name(parity)
+            << ", stop bits: " << stopbits << std::endl;
+}
+
+sp_port_config *SerialPort::create_default_settings() {
+  struct sp_port_config *initial_config;
+  check(sp_new_config(&initial_config));
+
+  check(sp_new_config(&initial_config));
+  check(sp_set_config_baudrate(initial_config, 9600));
+  check(sp_set_config_bits(initial_config, 8));
+  check(sp_set_config_parity(initial_config, SP_PARITY_NONE));
+  check(sp_set_config_stopbits(initial_config, 1));
+  check(sp_set_config_flowcontrol(initial_config, SP_FLOWCONTROL_NONE));
+
+  return initial_config;
 }
 
 int SerialPort::wait(unsigned int timeout, sp_event mask) {
@@ -87,6 +143,31 @@ const std::vector<int> SerialPort::commons_bauds = {
     50,    75,    110,    134,    150,    200,    300,   600,
     1200,  1800,  2400,   4800,   9600,   19200,  28800, 38400,
     57600, 76800, 115200, 230400, 460800, 576000, 921600};
+
+std::map<enum sp_parity, std::string> SerialPort::parity_names = {
+    {SP_PARITY_INVALID, "(Invalid)"}, {SP_PARITY_NONE, "None"},
+    {SP_PARITY_ODD, "Odd"},           {SP_PARITY_EVEN, "Even"},
+    {SP_PARITY_MARK, "Mark"},         {SP_PARITY_SPACE, "Space"}};
+
+/* Helper function to give a name for each parity mode. */
+const char *SerialPort::parity_name(enum sp_parity parity) {
+  switch (parity) {
+    case SP_PARITY_INVALID:
+      return "(Invalid)";
+    case SP_PARITY_NONE:
+      return "None";
+    case SP_PARITY_ODD:
+      return "Odd";
+    case SP_PARITY_EVEN:
+      return "Even";
+    case SP_PARITY_MARK:
+      return "Mark";
+    case SP_PARITY_SPACE:
+      return "Space";
+    default:
+      return NULL;
+  }
+}
 
 // void SerialPort::list_available_serial_ports() {
 //   struct sp_port **port_list;

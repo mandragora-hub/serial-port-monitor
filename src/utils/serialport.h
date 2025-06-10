@@ -1,6 +1,7 @@
 #ifndef SERIAL_PORT_H
 #define SERIAL_PORT_H
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -23,13 +24,19 @@ class SerialPort {
   int read_data(void* buf, size_t count);
   int send_data(const void* data, size_t count);
 
+  // Helper functions (TODO: every should public or private or both)
+  void show_config();
   static const std::vector<int> commons_bauds;
+  static std::map<enum sp_parity, std::string> parity_names;
+  const char* parity_name(enum sp_parity parity);
+  int check(enum sp_return result);
 
  private:
   struct sp_port* port = nullptr;
-  unsigned int timeout = 1000;
+  struct sp_port_config* config = nullptr;
 
-  int check(enum sp_return result);
+  struct sp_port_config* create_default_settings();
+  unsigned int timeout = 1000;
 };
 
 #endif  // SERIAL_PORT_H

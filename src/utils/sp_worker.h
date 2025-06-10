@@ -14,8 +14,6 @@ class SPWorker {
  public:
   SPWorker(SerialPort *port);
   ~SPWorker();
-  // just for test => remove this line
-  SPWorker();
 
   void do_work(SPMAppWindow *caller);
   void stop_work();
