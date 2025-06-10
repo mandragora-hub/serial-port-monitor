@@ -16,7 +16,6 @@ SerialPort::SerialPort(std::string port_name, sp_mode flags) {
 }
 
 SerialPort::~SerialPort() {
-  std::cout << "Serial port destructor called" << std::endl;
   check(sp_close(port));
   sp_free_port(port);
 }

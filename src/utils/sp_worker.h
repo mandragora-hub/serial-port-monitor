@@ -54,8 +54,6 @@ class SPWorker {
 
   bool m_shall_stop = false;
   bool m_has_stopped = false;
-
-  SerialPort *port;
 };
 
 // provide a hash function for use with std::map

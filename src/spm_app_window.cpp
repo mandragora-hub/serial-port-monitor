@@ -350,7 +350,7 @@ void SPMAppWindow::on_activate_entry_and_clicked_send_button(
 
 void SPMAppWindow::on_text_view_update(std::shared_ptr<SPWorker> worker,
                                        Gtk::TextView *textView) {
-  if (worker->get_shall_stop()) return;
+  if (worker->get_shall_stop()) return;  // This is really needed
   auto buffer = textView->get_buffer();
   Gtk::TextBuffer::iterator iter = buffer->end();
 

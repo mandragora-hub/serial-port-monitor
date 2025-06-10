@@ -21,13 +21,12 @@ SPWorker::SPWorker() {
 }
 
 SPWorker::~SPWorker() {
-  std::cout << "Worker destructor" << std::endl;
   if (thread) {
     if (thread->joinable()) thread->join();
     delete thread;
     thread = nullptr;
   }
-  delete port;
+  delete m_serialport;
 }
 
 void SPWorker::do_work(SPMAppWindow* caller) {
