@@ -257,10 +257,9 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
 
   // Try to create the serial ports
   SerialPort *sp =
-      new SerialPort(file->get_path(), SP_MODE_READ_WRITE, bauds_settings,
-                     SerialPort::parity_from_name(parity_setting));
-
-  if (!sp) throw std::runtime_error("Cannot find the serial port");
+      SerialPort::create(file->get_path(), SP_MODE_READ_WRITE, bauds_settings,
+                         SerialPort::parity_from_name(parity_setting));
+  if (!sp) throw std::runtime_error("Error connecting with port: " + file->get_path());
 
   m_stack->add(*view_box, basename, basename);
 

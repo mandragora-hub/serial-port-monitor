@@ -1,21 +1,22 @@
 #include "serialport.h"
 
-#include <format>
-#include <iostream>
 #include <string.h>
 
-SerialPort::SerialPort(std::string port_name, sp_mode mode) {
-  check(sp_get_port_by_name(port_name.c_str(), &port));
-  check(sp_open(port, mode));
+#include <format>
+#include <iostream>
 
-  // Default settings
-  std::cout << "Setting port " << port_name << " to 9600 8N1, no flow control."
-            << std::endl;
-  config = create_default_settings();
+// SerialPort::SerialPort(std::string port_name, sp_mode mode) {
+//   check(sp_get_port_by_name(port_name.c_str(), &port));
+//   check(sp_open(port, mode));
 
-  std::cout << "Applying new configuration" << std::endl;
-  check(sp_set_config(port, config));
-}
+//   // Default settings
+//   std::cout << "Setting port " << port_name << " to 9600 8N1, no flow control."
+//             << std::endl;
+//   config = create_default_settings();
+
+//   std::cout << "Applying new configuration" << std::endl;
+//   check(sp_set_config(port, config));
+// }
 
 SerialPort::SerialPort(std::string port_name, sp_mode mode, int baud_rate,
                        sp_parity parity, int bits, int stopbits,
@@ -65,9 +66,9 @@ SerialPort::~SerialPort() {
   sp_free_config(config);
 }
 
-// SerialPort *SerialPort::create(std::string port_name, sp_mode flags) {
+// SerialPort *SerialPort::create(std::string port_name, sp_mode mode) {
 //   try {
-//     SerialPort *sp = new SerialPort(port_name, flags);
+//     SerialPort *sp = new SerialPort(port_name, mode);
 //     return sp;
 //   } catch (const std::exception &e) {
 //     std::cerr << e.what() << '\n';
@@ -75,6 +76,20 @@ SerialPort::~SerialPort() {
 
 //   return nullptr;
 // }
+
+SerialPort *SerialPort::create(std::string port_name, sp_mode mode,
+                               int baud_rate, sp_parity parity, int bits,
+                               int stopbits, sp_flowcontrol flowcontrol) {
+  try {
+    SerialPort *sp = new SerialPort(port_name, mode, baud_rate, parity, bits,
+                                    stopbits, flowcontrol);
+    return sp;
+  } catch (const std::exception &e) {
+    std::cerr << e.what() << '\n';
+  }
+
+  return nullptr;
+}
 
 std::vector<std::string> SerialPort::list_available_serial_ports() {
   struct sp_port **port_list;
@@ -201,16 +216,16 @@ int SerialPort::check(sp_return result) {
 
   switch (result) {
     case SP_ERR_ARG:
-      throw std::runtime_error("Error: Invalid argument.\n");
+      throw std::runtime_error("Error: Invalid argument.");
     case SP_ERR_FAIL:
       error_message = sp_last_error_message();
       std::cerr << "Error: Failed: " << error_message << std::endl;
       sp_free_error_message(error_message);
       throw std::runtime_error("");
     case SP_ERR_SUPP:
-      throw std::runtime_error("Error: Not supported.\n");
+      throw std::runtime_error("Error: Not supported.");
     case SP_ERR_MEM:
-      throw std::runtime_error("Error: Couldn't allocate memory.\n");
+      throw std::runtime_error("Error: Couldn't allocate memory.");
     case SP_OK:
     default:
       return result;

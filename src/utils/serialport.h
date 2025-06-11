@@ -9,14 +9,19 @@
 
 class SerialPort {
  public:
-  SerialPort(std::string port_name, sp_mode mode = SP_MODE_READ);
+  // SerialPort(std::string port_name, sp_mode mode = SP_MODE_READ);
   SerialPort(std::string port_name, sp_mode mode = SP_MODE_READ,
              int baud_rate = 9600, sp_parity parity = SP_PARITY_NONE,
              int bits = 8, int stopbits = 1,
              sp_flowcontrol flowcontrol = SP_FLOWCONTROL_NONE);
   ~SerialPort();
 
-  static SerialPort* create(std::string port_name, sp_mode flags);
+  static SerialPort* create(std::string port_name, sp_mode mode = SP_MODE_READ);
+  static SerialPort* create(std::string port_name, sp_mode mode = SP_MODE_READ,
+                            int baud_rate = 9600,
+                            sp_parity parity = SP_PARITY_NONE, int bits = 8,
+                            int stopbits = 1,
+                            sp_flowcontrol flowcontrol = SP_FLOWCONTROL_NONE);
   static std::vector<std::string> list_available_serial_ports();
 
   // method

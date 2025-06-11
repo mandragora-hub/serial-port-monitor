@@ -40,7 +40,6 @@ void SPMApp::on_startup() {
   add_action("quit", sigc::mem_fun(*this, &SPMApp::on_action_quit));
   set_accel_for_action("app.quit", "<Ctrl>Q");
   set_accel_for_action("win.close-tab", "<Ctrl>W");
-
 }
 
 void SPMApp::on_activate() {
@@ -72,8 +71,12 @@ void SPMApp::on_open(const Gio::Application::type_vec_files &files,
     appwindow->present();
   } catch (const Glib::Error &ex) {
     std::cerr << "SPM::on_open(): " << ex.what() << std::endl;
+    appwindow->hide();
+    quit();
   } catch (const std::exception &ex) {
     std::cerr << "SPM::on_open(): " << ex.what() << std::endl;
+    appwindow->hide();
+    quit();
   }
 }
 
