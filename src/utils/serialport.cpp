@@ -1,10 +1,12 @@
 #include "serialport.h"
 
+#include <format>
 #include <iostream>
+#include <string.h>
 
-SerialPort::SerialPort(std::string port_name, sp_mode flags) {
+SerialPort::SerialPort(std::string port_name, sp_mode mode) {
   check(sp_get_port_by_name(port_name.c_str(), &port));
-  check(sp_open(port, flags));
+  check(sp_open(port, mode));
 
   // Default settings
   std::cout << "Setting port " << port_name << " to 9600 8N1, no flow control."
@@ -12,6 +14,21 @@ SerialPort::SerialPort(std::string port_name, sp_mode flags) {
   config = create_default_settings();
 
   std::cout << "Applying new configuration" << std::endl;
+  check(sp_set_config(port, config));
+}
+
+SerialPort::SerialPort(std::string port_name, sp_mode mode, int baud_rate,
+                       sp_parity parity, int bits, int stopbits,
+                       sp_flowcontrol flowcontrol) {
+  check(sp_get_port_by_name(port_name.c_str(), &port));
+  check(sp_open(port, mode));
+
+  config = create_default_settings();
+  check(sp_set_config_baudrate(config, baud_rate));
+  check(sp_set_config_bits(config, bits));
+  check(sp_set_config_parity(config, parity));
+  check(sp_set_config_stopbits(config, stopbits));
+  check(sp_set_config_flowcontrol(config, flowcontrol));
   check(sp_set_config(port, config));
 }
 
@@ -48,15 +65,37 @@ SerialPort::~SerialPort() {
   sp_free_config(config);
 }
 
-SerialPort *SerialPort::create(std::string port_name, sp_mode flags) {
-  try {
-    SerialPort *sp = new SerialPort(port_name, flags);
-    return sp;
-  } catch (const std::exception &e) {
-    std::cerr << e.what() << '\n';
+// SerialPort *SerialPort::create(std::string port_name, sp_mode flags) {
+//   try {
+//     SerialPort *sp = new SerialPort(port_name, flags);
+//     return sp;
+//   } catch (const std::exception &e) {
+//     std::cerr << e.what() << '\n';
+//   }
+
+//   return nullptr;
+// }
+
+std::vector<std::string> SerialPort::list_available_serial_ports() {
+  struct sp_port **port_list;
+  enum sp_return result = sp_list_ports(&port_list);
+  if (result != SP_OK) {
+    std::cerr << "sp_list_ports() failed!" << std::endl;
+    return std::vector<std::string>();
   }
 
-  return nullptr;
+  /* Iterate through the ports. When port_list[i] is NULL
+   * this indicates the end of the list. */
+  std::vector<std::string> list;
+  for (int i = 0; port_list[i] != NULL; i++) {
+    struct sp_port *port = port_list[i];
+    char *port_name = sp_get_port_name(port);
+    list.push_back(port_name);
+  }
+
+  /* Free the array created by sp_list_ports(). */
+  sp_free_port_list(port_list);
+  return list;
 }
 
 int SerialPort::input_waiting() {
@@ -68,7 +107,45 @@ int SerialPort::send_data(const void *data, size_t count) {
   return check(sp_blocking_write(port, data, count, timeout));
 }
 
-void SerialPort::show_config() {
+sp_parity SerialPort::get_parity() {
+  enum sp_parity parity;
+  check(sp_get_config_parity(config, &parity));
+  return parity;
+}
+
+void SerialPort::set_parity(sp_parity parity) {
+  struct sp_port_config *other_config;
+  check(sp_new_config(&other_config));
+
+  check(sp_get_config(port, other_config));
+  check(sp_set_config_parity(other_config, parity));
+  check(sp_set_config(port, other_config));
+
+  sp_free_config(config);
+  config = other_config;
+}
+
+unsigned int SerialPort::get_bauds_rate() {
+  int bauds_rate;
+  check(sp_get_config_baudrate(config, &bauds_rate));
+  return bauds_rate;
+}
+
+void SerialPort::set_bauds_rate(unsigned int bauds_rate) {
+  struct sp_port_config *other_config;
+  check(sp_new_config(&other_config));
+
+  check(sp_get_config(port, other_config));
+  check(sp_set_config_baudrate(other_config, bauds_rate));
+  check(sp_set_config(port, other_config));
+
+  sp_free_config(config);
+  config = other_config;
+}
+
+void SerialPort::print_config() {
+  std::string port_name = sp_get_port_name(port);
+
   int baudrate, bits, stopbits;
   enum sp_parity parity;
 
@@ -77,16 +154,17 @@ void SerialPort::show_config() {
   check(sp_get_config_stopbits(config, &stopbits));
   check(sp_get_config_parity(config, &parity));
 
-  std::cout << "Baudrate:" << baudrate << ", data bits:" << bits
-            << ", parity: " << parity_name(parity)
-            << ", stop bits: " << stopbits << std::endl;
+  std::cout << std::format(
+                   "Port name: {}, baudrate: {}, data bits: {}, parity: {}, "
+                   "stop bits: {}",
+                   port_name, baudrate, bits, parity_name(parity), stopbits)
+            << std::endl;
 }
 
 sp_port_config *SerialPort::create_default_settings() {
   struct sp_port_config *initial_config;
   check(sp_new_config(&initial_config));
 
-  check(sp_new_config(&initial_config));
   check(sp_set_config_baudrate(initial_config, 9600));
   check(sp_set_config_bits(initial_config, 8));
   check(sp_set_config_parity(initial_config, SP_PARITY_NONE));
@@ -169,30 +247,10 @@ const char *SerialPort::parity_name(enum sp_parity parity) {
   }
 }
 
-// void SerialPort::list_available_serial_ports() {
-//   struct sp_port **port_list;
+sp_parity SerialPort::parity_from_name(std::string parity_name) {
+  for (auto it : SerialPort::parity_names) {
+    if (strcmp(it.second.c_str(), parity_name.c_str()) == 0) return it.first;
+  }
 
-//   enum sp_return result = sp_list_ports(&port_list);
-
-//   if (result != SP_OK) {
-//     std::cerr << "sp_list_ports() failed!" << std::endl;
-//     return;
-//   }
-
-//   /* Iterate through the ports. When port_list[i] is NULL
-//    * this indicates the end of the list. */
-//   int i;
-//   for (i = 0; port_list[i] != NULL; i++) {
-//     struct sp_port *port = port_list[i];
-
-//     /* Get the name of the port. */
-//     char *port_name = sp_get_port_name(port);
-
-//     std::cout << "Found port: " << port_name << std::endl;
-//   }
-
-//   std::cout << "Found " << i << " ports." << std::endl;
-
-//   /* Free the array created by sp_list_ports(). */
-//   sp_free_port_list(port_list);
-// }
+  return SP_PARITY_INVALID;
+}

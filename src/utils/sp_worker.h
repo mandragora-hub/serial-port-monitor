@@ -25,6 +25,8 @@ class SPWorker {
   void set_name(Glib::ustring new_name) { name = new_name; }
   const Glib::ustring get_name() const { return name; }
 
+  SerialPort *get_port() const { return m_serialport; }
+
   bool get_shall_stop() const { return m_shall_stop; }
 
   bool operator==(const SPWorker &other) const { return id == other.id; }

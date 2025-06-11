@@ -213,6 +213,18 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
     throw std::runtime_error(
         "No \"show-timestamp-check-button\" object in view.ui");
 
+  auto parity_dropdown =
+      refBuilder->get_widget<Gtk::DropDown>("parity-dropdown");
+  if (!parity_dropdown)
+    throw std::runtime_error("No \"parity-dropdown\" object in view.ui");
+
+  auto parity_list = Gtk::StringList::create();
+  for (auto it : SerialPort::parity_names) {
+    if (it.first == SP_PARITY_INVALID) continue;
+    parity_list->append(it.second);
+  }
+  parity_dropdown->set_model(parity_list);
+
   auto bauds_dropdown = refBuilder->get_widget<Gtk::DropDown>("bauds-dropdown");
   if (!bauds_dropdown)
     throw std::runtime_error("No \"bauds-dropdown\" object in view.ui");
@@ -223,17 +235,12 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   }
   bauds_dropdown->set_model(bauds);
 
-  // Try to create the serial ports
-  SerialPort *sp = SerialPort::create(file->get_path(), SP_MODE_READ_WRITE);
-  if (!sp) throw std::runtime_error("Cannot find the serial port");
-
-  m_stack->add(*view_box, basename, basename);
-
-  // ports settings
+  // Set GUI element and serial port with ports settings
   std::string port_setting_path = std::format(
       "/org/gtkmm/spmonitor/ports/{}/", normalize_port_path(file->get_path()));
   Glib::RefPtr<Gio::Settings> port_settings =
       Gio::Settings::create("org.gtkmm.spmonitor.ports", port_setting_path);
+
   port_settings->bind("autoscroll", autoscroll_check_button->property_active());
   port_settings->bind("show-timestamp",
                       show_timestamp_check_button->property_active());
@@ -241,6 +248,21 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   int bauds_settings = port_settings->get_uint("bauds");
   int in = Utils::indexOf<int>(SerialPort::commons_bauds, bauds_settings);
   bauds_dropdown->set_selected(in);
+
+  Glib::ustring parity_setting = port_settings->get_string("parity");
+  int index_of_parity =
+      Utils::find_index_in_string_list(parity_list, parity_setting);
+  parity_dropdown->set_selected(index_of_parity);
+  //  --------------------------
+
+  // Try to create the serial ports
+  SerialPort *sp =
+      new SerialPort(file->get_path(), SP_MODE_READ_WRITE, bauds_settings,
+                     SerialPort::parity_from_name(parity_setting));
+
+  if (!sp) throw std::runtime_error("Cannot find the serial port");
+
+  m_stack->add(*view_box, basename, basename);
 
   auto worker = std::make_shared<SPWorker>(sp);
   worker->set_name(basename);
@@ -261,7 +283,10 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
       sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_clear_output), view));
   bauds_dropdown->property_selected().signal_changed().connect(
       sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_bauds_dropdown_changed),
-                 bauds_dropdown, port_settings));
+                 worker, bauds_dropdown, port_settings));
+  parity_dropdown->property_selected().signal_changed().connect(sigc::bind(
+      sigc::mem_fun(*this, &SPMAppWindow::on_parity_dropdown_changed), worker,
+      parity_dropdown, port_settings));
 
   // m_WorkerTable.insert({basename, m_Worker});
   // view->set_buffer(m_Worker.get_rx_buffer());
@@ -331,9 +356,36 @@ void SPMAppWindow::on_find_word(const Gtk::Button *button) {
 void SPMAppWindow::on_reveal_child_changed() { update_words(); }
 
 void SPMAppWindow::on_bauds_dropdown_changed(
-    Gtk::DropDown *dropdown, Glib::RefPtr<Gio::Settings> port_settings) {
+    std::shared_ptr<SPWorker> worker, Gtk::DropDown *dropdown,
+    Glib::RefPtr<Gio::Settings> port_settings) {
   const int bauds_rate = SerialPort::commons_bauds.at(dropdown->get_selected());
   port_settings->set_uint("bauds", bauds_rate);
+  SerialPort *port = worker->get_port();
+  if (port) port->set_bauds_rate(bauds_rate);
+}
+
+void SPMAppWindow::on_parity_dropdown_changed(
+    std::shared_ptr<SPWorker> worker, Gtk::DropDown *dropdown,
+    Glib::RefPtr<Gio::Settings> port_settings) {
+  Glib::RefPtr<Glib::ObjectBase> selected_item = dropdown->get_selected_item();
+
+  if (!selected_item) {
+    std::cerr << "Error: on_parity_dropdown_changed" << std::endl;
+    return;
+  }
+  auto string_object =
+      std::dynamic_pointer_cast<Gtk::StringObject>(selected_item);
+  if (!string_object) {
+    std::cerr << "Error: Selected item could not be dynamically cast to "
+                 "Gtk::StringObject."
+              << std::endl;
+    return;
+  }
+  Glib::ustring value = string_object->get_string();
+  port_settings->set_string("parity", value);
+
+  SerialPort *port = worker->get_port();
+  if (port) port->set_parity(SerialPort::parity_from_name(value));
 }
 
 void SPMAppWindow::on_clear_output(Gtk::TextView *textView) {

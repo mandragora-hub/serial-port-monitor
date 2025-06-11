@@ -38,16 +38,18 @@
       <summary>Stopbits</summary>
       <description>Stop bits</description>
     </key>
-    <!-- <key name="transition" type="s">
+    <key name="parity" type="s">
       <choices>
-        <choice value="none" />
-        <choice value="crossfade" />
-        <choice value="slide-left-right" />
+        <choice value="Odd" />
+        <choice value="Mark" />
+        <choice value="None" />
+        <choice value="Even" />
+        <choice value="Space" />
       </choices>
-      <default>'none'</default>
-      <summary>Transition</summary>
+      <default>'None'</default>
+      <summary>parity</summary>
       <description></description>
-    </key> -->
+    </key>
     <key name="autoscroll" type="b">
       <default>false</default>
       <summary>Autoscroll</summary>

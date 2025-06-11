@@ -26,8 +26,12 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   void on_visible_child_changed();
   void on_find_word(const Gtk::Button *button);
   void on_reveal_child_changed();
-  void on_bauds_dropdown_changed(Gtk::DropDown *dropdown,
+  void on_bauds_dropdown_changed(std::shared_ptr<SPWorker> worker,
+                                 Gtk::DropDown *dropdown,
                                  Glib::RefPtr<Gio::Settings> port_settings);
+  void on_parity_dropdown_changed(std::shared_ptr<SPWorker> worker,
+                                  Gtk::DropDown *dropdown,
+                                  Glib::RefPtr<Gio::Settings> port_settings);
   void on_clear_output(Gtk::TextView *textView);
   void on_activate_entry_and_clicked_send_button(
       Gtk::Entry *entry, std::shared_ptr<SPWorker> worker);
