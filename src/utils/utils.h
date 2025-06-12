@@ -36,4 +36,25 @@ int find_index_in_string_list(const Glib::RefPtr<Gtk::StringList>& string_list,
   return -1;
 }
 
+// Helper function to find a child widget by its type and relative position
+// within a parent Gtk::Box, using GTK4 traversal methods.
+// I dont like look for child widget in that way. Replace if we catch some way better
+Gtk::Widget* get_nth_child_of_box(Gtk::Box* parent_box, int n)
+{
+    if (!parent_box) return nullptr;
+
+    Gtk::Widget* current_child = parent_box->get_first_child();
+    int count = 0;
+    while (current_child)
+    {
+        if (count == n)
+        {
+            return current_child;
+        }
+        current_child = current_child->get_next_sibling();
+        count++;
+    }
+    return nullptr; // Child not found at this position
+}
+
 };  // namespace Utils

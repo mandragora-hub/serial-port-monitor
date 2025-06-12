@@ -35,9 +35,10 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   void on_clear_output(Gtk::TextView *textView);
   void on_activate_entry_and_clicked_send_button(
       Gtk::Entry *entry, std::shared_ptr<SPWorker> worker);
-  void on_text_view_update(std::shared_ptr<SPWorker> worker,
+  void on_worker_update(std::shared_ptr<SPWorker> worker,
                            Gtk::TextView *textView);
   void on_close_current_tab();
+  void on_text_view_changed(Gtk::TextView *textView, Glib::RefPtr<Gio::Settings> port_settings);
 
   // actions
   // TODO: maybe all actions should be move it to private scope

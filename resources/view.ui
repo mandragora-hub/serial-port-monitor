@@ -67,10 +67,10 @@
                     <object class="GtkBox">
                         <property name="spacing">5</property>
                         <child>
-                            <object class="GtkDropDown" id="parity-dropdown"/>
+                            <object class="GtkDropDown" id="parity-dropdown" />
                         </child>
                         <child>
-                            <object class="GtkDropDown" id="bauds-dropdown"/>
+                            <object class="GtkDropDown" id="bauds-dropdown" />
                         </child>
                         <child>
                             <object class="GtkButton" id="clear-output-button">

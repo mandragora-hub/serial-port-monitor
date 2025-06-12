@@ -31,7 +31,7 @@
                 </child>
                 <child type="end">
                     <object class="GtkToggleButton" id="search">
-                        <property name="sensitive">false</property>
+                        <!-- <property name="sensitive">false</property> -->
                         <property name="icon-name">edit-find-symbolic</property>
                     </object>
                 </child>

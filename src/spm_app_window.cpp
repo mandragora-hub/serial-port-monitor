@@ -259,14 +259,15 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   SerialPort *sp =
       SerialPort::create(file->get_path(), SP_MODE_READ_WRITE, bauds_settings,
                          SerialPort::parity_from_name(parity_setting));
-  if (!sp) throw std::runtime_error("Error connecting with port: " + file->get_path());
+  if (!sp)
+    throw std::runtime_error("Error connecting with port: " + file->get_path());
 
   m_stack->add(*view_box, basename, basename);
 
   auto worker = std::make_shared<SPWorker>(sp);
   worker->set_name(basename);
-  worker->m_dispatcher.connect(sigc::bind(
-      sigc::mem_fun(*this, &SPMAppWindow::on_text_view_update), worker, view));
+  worker->m_update_dispatcher.connect(sigc::bind(
+      sigc::mem_fun(*this, &SPMAppWindow::on_worker_update), worker, view));
   worker->thread = new std::thread([this, worker] { worker->do_work(this); });
 
   sp_workers.push_back(worker);
@@ -286,7 +287,9 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   parity_dropdown->property_selected().signal_changed().connect(sigc::bind(
       sigc::mem_fun(*this, &SPMAppWindow::on_parity_dropdown_changed), worker,
       parity_dropdown, port_settings));
-
+  view->get_buffer()->signal_changed().connect(
+      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_text_view_changed),
+                 view, port_settings));
   // m_WorkerTable.insert({basename, m_Worker});
   // view->set_buffer(m_Worker.get_rx_buffer());
   // auto buffer = view->get_buffer();
@@ -314,32 +317,41 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
 }
 
 void SPMAppWindow::on_search_text_changed() {
-  // const auto text = m_searchentry->get_text();
-  // auto tab = dynamic_cast<Gtk::ScrolledWindow
-  // *>(m_stack->get_visible_child()); if (!tab) {
-  //   std::cout << "SPMAppWindow::on_search_text_changed(): No visible "
-  //                "child."
-  //             << std::endl;
-  //   return;
-  // }
-  // auto view = dynamic_cast<Gtk::TextView *>(tab->get_child());
-  // if (!view) {
-  //   std::cout << "SPMAppWindow::on_search_text_changed(): No visible text
-  //   view"
-  //             << std::endl;
-  //   return;
-  // }
+  const auto text = m_searchentry->get_text();
+  auto view_box = dynamic_cast<Gtk::Box *>(m_stack->get_visible_child());
+  if (!view_box) {
+    std::cout << "SPMAppWindow::on_search_text_changed(): No visible "
+                 "child."
+              << std::endl;
+    return;
+  }
 
-  // // Very simple-minded search implementation
-  // auto buffer = view->get_buffer();
-  // Gtk::TextIter match_start;
-  // Gtk::TextIter match_end;
-  // if (buffer->begin().forward_search(text,
-  //                                    Gtk::TextSearchFlags::CASE_INSENSITIVE,
-  //                                    match_start, match_end)) {
-  //   buffer->select_range(match_start, match_end);
-  //   view->scroll_to(match_start);
-  // }
+  auto tab = dynamic_cast<Gtk::ScrolledWindow *>(
+      Utils::get_nth_child_of_box(view_box, 2));
+  if (!tab) {
+    std::cout << "SPMAppWindow::on_search_text_changed(): no visible "
+                 "scrolled-window in view box in 2nd position."
+              << std::endl;
+    return;
+  }
+
+  auto view = dynamic_cast<Gtk::TextView *>(tab->get_child());
+  if (!view) {
+    std::cout << "SPMAppWindow::on_search_text_changed(): No visible text view."
+              << std::endl;
+    return;
+  }
+
+  // Very simple-minded search implementation
+  auto buffer = view->get_buffer();
+  Gtk::TextIter match_start;
+  Gtk::TextIter match_end;
+  if (buffer->begin().forward_search(text,
+                                     Gtk::TextSearchFlags::CASE_INSENSITIVE,
+                                     match_start, match_end)) {
+    buffer->select_range(match_start, match_end);
+    view->scroll_to(match_start);
+  }
 }
 
 void SPMAppWindow::on_visible_child_changed() {
@@ -399,8 +411,8 @@ void SPMAppWindow::on_activate_entry_and_clicked_send_button(
   entry->set_text("");
 }
 
-void SPMAppWindow::on_text_view_update(std::shared_ptr<SPWorker> worker,
-                                       Gtk::TextView *textView) {
+void SPMAppWindow::on_worker_update(std::shared_ptr<SPWorker> worker,
+                                    Gtk::TextView *textView) {
   if (worker->get_shall_stop()) return;  // This is really needed
   auto buffer = textView->get_buffer();
   Gtk::TextBuffer::iterator iter = buffer->end();
@@ -451,6 +463,14 @@ void SPMAppWindow::on_close_current_tab() {
 
   auto next_child = children.at(next_child_index);
   if (next_child) m_stack->set_visible_child(*next_child);
+}
+
+void SPMAppWindow::on_text_view_changed(
+    Gtk::TextView *textView, Glib::RefPtr<Gio::Settings> port_settings) {
+  if (!port_settings->get_boolean("autoscroll")) return;
+  auto buffer = textView->get_buffer();
+  Gtk::TextIter end_iter = buffer->end();
+  textView->scroll_to(end_iter);
 }
 
 void SPMAppWindow::update_words() {

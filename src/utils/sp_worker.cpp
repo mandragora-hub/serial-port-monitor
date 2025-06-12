@@ -73,7 +73,7 @@ void SPWorker::do_work(SPMAppWindow* caller) {
     }
 
     // Rest
-    m_dispatcher.emit();
+    m_update_dispatcher.emit();
     std::this_thread::sleep_for(
         std::chrono::milliseconds(MILLISECOND_THREAD_SLEEP));
   }

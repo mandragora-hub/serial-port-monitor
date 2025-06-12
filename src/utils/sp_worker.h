@@ -36,7 +36,7 @@ class SPWorker {
   // TODO: saving thread references here. is really the best places for it?
   std::thread *thread = {nullptr};
 
-  Glib::Dispatcher m_dispatcher;
+  Glib::Dispatcher m_update_dispatcher;
 
   const DynamicBuffer *get_rx_buffer() const { return m_rx_buffer; }
 
