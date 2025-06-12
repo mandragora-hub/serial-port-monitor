@@ -21,7 +21,7 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   void open_file_view(const Glib::RefPtr<Gio::File> &file);
 
  protected:
-  // signal handlers:
+  // Signal handlers:
   void on_search_text_changed();
   void on_visible_child_changed();
   void on_find_word(const Gtk::Button *button);

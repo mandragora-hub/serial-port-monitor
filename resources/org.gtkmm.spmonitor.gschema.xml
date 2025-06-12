@@ -21,6 +21,11 @@
       <summary>Show words</summary>
       <description>whether to show a word list in the sidebar</description>
     </key>
+    <key name="show-lines" type="b">
+      <default>false</default>
+      <summary>Show lines</summary>
+      <description>Count lines in current visible text view</description>
+    </key>
   </schema>
   <schema id="org.gtkmm.spmonitor.ports">
     <key name="bauds" type="u">

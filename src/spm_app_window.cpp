@@ -53,6 +53,10 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
   m_settings = Gio::Settings::create("org.gtkmm.spmonitor");
   m_settings->bind("transition", m_stack->property_transition_type());
   m_settings->bind("show-words", m_sidebar->property_reveal_child());
+  
+  m_binding_lines_visible = Glib::Binding::bind_property(
+      m_lines->property_visible(), m_lines_label->property_visible());
+  m_settings->bind("show-lines", m_lines->property_visible());
 
   // Bind properties
   m_binding_search_enabled = Glib::Binding::bind_property(
@@ -79,13 +83,12 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
   add_action("close-tab",
              sigc::mem_fun(*this, &SPMAppWindow::on_close_current_tab));
   add_action(m_settings->create_action("show-words"));
+  add_action(m_settings->create_action("show-lines"));
 
   // Bind the "visible" property of m_lines to the win.show-lines action, to
   // the "Lines" menu item and to the "visible" property of m_lines_label.
-  add_action(
-      Gio::PropertyAction::create("show-lines", m_lines->property_visible()));
-  m_binding_lines_visible = Glib::Binding::bind_property(
-      m_lines->property_visible(), m_lines_label->property_visible());
+  // add_action(
+  // Gio::PropertyAction::create("show-lines", m_lines->property_visible()));
 
   // Set window icon
   Gtk::IconTheme::get_for_display(get_display())
@@ -313,7 +316,7 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   // m_search->set_sensitive(true);
 
   // update_words();
-  // update_lines();
+  update_lines();
 }
 
 void SPMAppWindow::on_search_text_changed() {
@@ -467,6 +470,8 @@ void SPMAppWindow::on_close_current_tab() {
 
 void SPMAppWindow::on_text_view_changed(
     Gtk::TextView *textView, Glib::RefPtr<Gio::Settings> port_settings) {
+  update_lines();
+
   if (!port_settings->get_boolean("autoscroll")) return;
   auto buffer = textView->get_buffer();
   Gtk::TextIter end_iter = buffer->end();
@@ -511,24 +516,39 @@ void SPMAppWindow::update_words() {
   // }
 }
 void SPMAppWindow::update_lines() {
-  // auto tab = dynamic_cast<Gtk::ScrolledWindow
-  // *>(m_stack->get_visible_child()); if (!tab) return;
+  const auto text = m_searchentry->get_text();
+  auto view_box = dynamic_cast<Gtk::Box *>(m_stack->get_visible_child());
+  if (!view_box) {
+    std::cout << "SPMAppWindow::on_search_text_changed(): No visible "
+                 "child."
+              << std::endl;
+    return;
+  }
 
-  // auto view = dynamic_cast<Gtk::TextView *>(tab->get_child());
-  // if (!view) {
-  //   std::cout << "ExampleAppWindow::update_lines(): No visible text view."
-  //             << std::endl;
-  //   return;
-  // }
-  // auto buffer = view->get_buffer();
+  auto tab = dynamic_cast<Gtk::ScrolledWindow *>(
+      Utils::get_nth_child_of_box(view_box, 2));
+  if (!tab) {
+    std::cout << "SPMAppWindow::on_search_text_changed(): no visible "
+                 "scrolled-window in view box in 2nd position."
+              << std::endl;
+    return;
+  }
 
-  // int count = 0;
-  // auto iter = buffer->begin();
-  // while (iter) {
-  //   ++count;
-  //   if (!iter.forward_line()) break;
-  // }
-  // m_lines->set_text(Glib::ustring::format(count));
+  auto view = dynamic_cast<Gtk::TextView *>(tab->get_child());
+  if (!view) {
+    std::cout << "ExampleAppWindow::update_lines(): No visible text view."
+              << std::endl;
+    return;
+  }
+  auto buffer = view->get_buffer();
+
+  int count = 0;
+  auto iter = buffer->begin();
+  while (iter) {
+    ++count;
+    if (!iter.forward_line()) break;
+  }
+  m_lines->set_text(Glib::ustring::format(count));
 }
 
 // Gtk::TextView *SPMAppWindow::get_text_view() {
