@@ -53,7 +53,7 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
   m_settings = Gio::Settings::create("org.gtkmm.spmonitor");
   m_settings->bind("transition", m_stack->property_transition_type());
   m_settings->bind("show-words", m_sidebar->property_reveal_child());
-  
+
   m_binding_lines_visible = Glib::Binding::bind_property(
       m_lines->property_visible(), m_lines_label->property_visible());
   m_settings->bind("show-lines", m_lines->property_visible());
@@ -80,6 +80,7 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
   m_gears->set_menu_model(menu);
   add_action("open-serial-port",
              sigc::mem_fun(*this, &SPMAppWindow::on_action_open_serial_port));
+  add_action("export", sigc::mem_fun(*this, &SPMAppWindow::on_export));
   add_action("close-tab",
              sigc::mem_fun(*this, &SPMAppWindow::on_close_current_tab));
   add_action(m_settings->create_action("show-words"));
@@ -321,24 +322,7 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
 
 void SPMAppWindow::on_search_text_changed() {
   const auto text = m_searchentry->get_text();
-  auto view_box = dynamic_cast<Gtk::Box *>(m_stack->get_visible_child());
-  if (!view_box) {
-    std::cout << "SPMAppWindow::on_search_text_changed(): No visible "
-                 "child."
-              << std::endl;
-    return;
-  }
-
-  auto tab = dynamic_cast<Gtk::ScrolledWindow *>(
-      Utils::get_nth_child_of_box(view_box, 2));
-  if (!tab) {
-    std::cout << "SPMAppWindow::on_search_text_changed(): no visible "
-                 "scrolled-window in view box in 2nd position."
-              << std::endl;
-    return;
-  }
-
-  auto view = dynamic_cast<Gtk::TextView *>(tab->get_child());
+  auto view = get_visible_text_view();
   if (!view) {
     std::cout << "SPMAppWindow::on_search_text_changed(): No visible text view."
               << std::endl;
@@ -478,6 +462,49 @@ void SPMAppWindow::on_text_view_changed(
   textView->scroll_to(end_iter);
 }
 
+void SPMAppWindow::on_export() {
+  auto view = get_visible_text_view();
+  if (!view) {
+    std::cout << "SPMAppWindow::on_search_text_changed(): No visible text view."
+              << std::endl;
+    return;
+  }
+  auto buffer = view->get_buffer();
+
+
+
+
+
+   auto dialog = Gtk::FileDialog::create();
+
+  // Add filters, so that only certain file types can be selected:
+  auto filters = Gio::ListStore<Gtk::FileFilter>::create();
+
+  auto filter_text = Gtk::FileFilter::create();
+  filter_text->set_name("Text files");
+  filter_text->add_mime_type("text/plain");
+  filters->append(filter_text);
+
+  auto filter_cpp = Gtk::FileFilter::create();
+  filter_cpp->set_name("C/C++ files");
+  filter_cpp->add_mime_type("text/x-c");
+  filter_cpp->add_mime_type("text/x-c++");
+  filter_cpp->add_mime_type("text/x-c-header");
+  filters->append(filter_cpp);
+
+  auto filter_any = Gtk::FileFilter::create();
+  filter_any->set_name("Any files");
+  filter_any->add_pattern("*");
+  filters->append(filter_any);
+
+  dialog->set_filters(filters);
+
+  // Show the dialog and wait for a user response:
+  // dialog->open(sigc::bind(sigc::mem_fun(
+  //   *this, &ExampleWindow::on_file_dialog_finish), dialog));
+
+}
+
 void SPMAppWindow::update_words() {
   // auto tab = dynamic_cast<Gtk::ScrolledWindow
   // *>(m_stack->get_visible_child()); if (!tab) return;
@@ -515,31 +542,16 @@ void SPMAppWindow::update_words() {
   //   m_words->append(*row);
   // }
 }
+
 void SPMAppWindow::update_lines() {
   const auto text = m_searchentry->get_text();
-  auto view_box = dynamic_cast<Gtk::Box *>(m_stack->get_visible_child());
-  if (!view_box) {
-    std::cout << "SPMAppWindow::on_search_text_changed(): No visible "
-                 "child."
-              << std::endl;
-    return;
-  }
-
-  auto tab = dynamic_cast<Gtk::ScrolledWindow *>(
-      Utils::get_nth_child_of_box(view_box, 2));
-  if (!tab) {
-    std::cout << "SPMAppWindow::on_search_text_changed(): no visible "
-                 "scrolled-window in view box in 2nd position."
-              << std::endl;
-    return;
-  }
-
-  auto view = dynamic_cast<Gtk::TextView *>(tab->get_child());
+  auto view = get_visible_text_view();
   if (!view) {
-    std::cout << "ExampleAppWindow::update_lines(): No visible text view."
+    std::cout << "SPMAppWindow::on_search_text_changed(): No visible text view."
               << std::endl;
     return;
   }
+
   auto buffer = view->get_buffer();
 
   int count = 0;
@@ -578,4 +590,31 @@ std::string SPMAppWindow::normalize_port_path(std::string port_path) {
       (pos == std::string::npos) ? port_path : port_path.substr(pos + 1);
 
   return port_name;
+}
+
+Gtk::TextView *SPMAppWindow::get_visible_text_view() {
+  auto view_box = dynamic_cast<Gtk::Box *>(m_stack->get_visible_child());
+  if (!view_box) {
+    std::cout << "SPMAppWindow::on_search_text_changed(): No visible "
+                 "child."
+              << std::endl;
+    return nullptr;
+  }
+
+  auto tab = dynamic_cast<Gtk::ScrolledWindow *>(
+      Utils::get_nth_child_of_box(view_box, 2));
+  if (!tab) {
+    std::cout << "SPMAppWindow::on_search_text_changed(): no visible "
+                 "scrolled-window in view box in 2nd position."
+              << std::endl;
+    return nullptr;
+  }
+
+  auto view = dynamic_cast<Gtk::TextView *>(tab->get_child());
+  if (!view) {
+    std::cout << "SPMAppWindow::on_search_text_changed(): No visible text view."
+              << std::endl;
+    return nullptr;
+  }
+  return view;
 }

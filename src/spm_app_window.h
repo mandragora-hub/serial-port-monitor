@@ -36,9 +36,12 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   void on_activate_entry_and_clicked_send_button(
       Gtk::Entry *entry, std::shared_ptr<SPWorker> worker);
   void on_worker_update(std::shared_ptr<SPWorker> worker,
-                           Gtk::TextView *textView);
+                        Gtk::TextView *textView);
   void on_close_current_tab();
-  void on_text_view_changed(Gtk::TextView *textView, Glib::RefPtr<Gio::Settings> port_settings);
+  void on_text_view_changed(Gtk::TextView *textView,
+                            Glib::RefPtr<Gio::Settings> port_settings);
+  void on_export();
+  void on_action_open_serial_port();
 
   // actions
   // TODO: maybe all actions should be move it to private scope
@@ -75,10 +78,8 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
 
   Glib::Dispatcher m_Dispatcher;
 
-  // actions
-  void on_action_open_serial_port();
-
   std::string normalize_port_path(std::string port_path);
+  Gtk::TextView *get_visible_text_view();
 };
 
 #endif  // SPM_APP_WINDOW_H

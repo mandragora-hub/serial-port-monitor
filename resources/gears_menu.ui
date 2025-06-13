@@ -6,6 +6,10 @@
                 <attribute name="label" translatable="yes">_Open serial port</attribute>
                 <attribute name="action">win.open-serial-port</attribute>
             </item>
+            <item>
+                <attribute name="label" translatable="yes">_Export</attribute>
+                <attribute name="action">win.export</attribute>
+            </item>
         </section>
         <section>
             <item>
