@@ -3,16 +3,18 @@
 
 #include <gtkmm-4.0/gtkmm.h>
 
-#include <thread>
 #include <map>
+#include <thread>
 
 #include "dynamic_buffer.h"
 #include "serialport.h"
 
 class SPMAppWindow;
 
+// struct used for track text and timestamp
 struct LogEntry {
-
+  std::chrono::system_clock::time_point timestamp;
+  Glib::ustring text;
 };
 
 class SPWorker {
@@ -45,19 +47,22 @@ class SPWorker {
 
   const DynamicBuffer *get_rx_buffer() const { return m_rx_buffer; }
 
-  std::map<std::string, std::string> alltext;
+  std::vector<LogEntry> get_entries();
 
  private:
   // Synchronizes access to member data.
   mutable std::mutex mutex;
 
-  Glib::ustring name;
+  Glib::ustring name; // remove me
   uintptr_t id;
 
   SerialPort *m_serialport = {nullptr};
 
   DynamicBuffer *m_rx_buffer = {nullptr};
   DynamicBuffer *m_tx_buffer = {nullptr};
+
+  std::vector<LogEntry> log_entries;
+  void insert_entries(Glib::ustring text);
 
   bool m_shall_stop = false;
   bool m_has_stopped = false;

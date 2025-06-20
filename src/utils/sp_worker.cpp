@@ -40,6 +40,7 @@ void SPWorker::do_work(SPMAppWindow* caller) {
           m_serialport->send_data(m_tx_buffer->data(), m_tx_buffer->size());
 
           m_rx_buffer->append(m_tx_buffer->data(), m_tx_buffer->size());
+          insert_entries(m_tx_buffer->data());
           m_tx_buffer->clear();
         }
       }
@@ -64,6 +65,7 @@ void SPWorker::do_work(SPMAppWindow* caller) {
 
         free(buf);
         m_rx_buffer->append(text.c_str(), text.size());
+        insert_entries(text.c_str());
       }
     }
 
@@ -98,4 +100,16 @@ void SPWorker::send_data(const char* data, size_t size) {
 void SPWorker::clearRX() {
   std::lock_guard<std::mutex> lock(mutex);
   m_rx_buffer->clear();
+}
+
+std::vector<LogEntry> SPWorker::get_entries() {
+  return log_entries;
+}
+
+void SPWorker::insert_entries(Glib::ustring text) {
+  LogEntry entry;
+  entry.timestamp = std::chrono::system_clock::now();
+  entry.text = text;
+  
+  log_entries.push_back(entry);
 }

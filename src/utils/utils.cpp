@@ -59,15 +59,17 @@ Glib::ustring Utils::trim(const Glib::ustring& str) {
 }
 
 // default format: YYYY-MM-DD HH:MM:SS
-std::string Utils::generate_current_timestamp(std::string fmt = "%Y-%m-%d %H:%M:%S") {
-  auto now = std::chrono::system_clock::now();  // Get current time point
+std::string Utils::get_timestamp_string(
+    std::chrono::system_clock::time_point timestamp =
+        std::chrono::system_clock::now(),
+    std::string fmt = "%Y-%m-%d %H:%M:%S") {
   time_t currentTime_t =
-      std::chrono::system_clock::to_time_t(now);  // Convert to time_t
+      std::chrono::system_clock::to_time_t(timestamp);  // Convert to time_t
   std::tm* localTime =
       std::localtime(&currentTime_t);  // Convert to local time structure
 
   // std::cout << "Current timestamp (time_t): " << currentTime_t << std::endl;
   std::ostringstream oss;
-  oss << std::put_time(localTime, fmt.c_str());
+  oss << "[" << std::put_time(localTime, fmt.c_str()) << "]";
   return oss.str();
 }

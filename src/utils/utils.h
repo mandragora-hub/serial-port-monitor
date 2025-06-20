@@ -29,6 +29,6 @@ class Utils {
  static Glib::ustring trim(const Glib::ustring& str);
 
   // default format: YYYY-MM-DD HH:MM:SS
-  static std::string generate_current_timestamp(std::string fmt);
+  static std::string get_timestamp_string(std::chrono::system_clock::time_point timestamp = std::chrono::system_clock::now(), std::string fmt = "%Y-%m-%d %H:%M:%S");
 
 };  // namespace Utils
