@@ -4,11 +4,16 @@
 #include <gtkmm-4.0/gtkmm.h>
 
 #include <thread>
+#include <map>
 
 #include "dynamic_buffer.h"
 #include "serialport.h"
 
 class SPMAppWindow;
+
+struct LogEntry {
+
+};
 
 class SPWorker {
  public:
@@ -39,6 +44,8 @@ class SPWorker {
   Glib::Dispatcher m_update_dispatcher;
 
   const DynamicBuffer *get_rx_buffer() const { return m_rx_buffer; }
+
+  std::map<std::string, std::string> alltext;
 
  private:
   // Synchronizes access to member data.

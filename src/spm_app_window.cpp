@@ -97,34 +97,34 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
   set_icon_name("logo");
 
   // Create welcome message
-  try {
-    auto welcome_message = Gtk::make_managed<Gtk::Label>();
-    auto welcome_box = Gtk::make_managed<Gtk::CenterBox>();
+  //   try {
+  //     auto welcome_message = Gtk::make_managed<Gtk::Label>();
+  //     auto welcome_box = Gtk::make_managed<Gtk::CenterBox>();
 
-    Glib::RefPtr<Gio::File> msg_file = Gio::File::create_for_uri(
-        "resource:///org/gtkmm/spmonitor/resources/welcome_msg.xml");
-    char *contents = nullptr;
-    gsize length = 0;
+  //     Glib::RefPtr<Gio::File> msg_file = Gio::File::create_for_uri(
+  //         "resource:///org/gtkmm/spmonitor/resources/welcome_msg.xml");
+  //     char *contents = nullptr;
+  //     gsize length = 0;
 
-    msg_file->load_contents(contents, length);
+  //     msg_file->load_contents(contents, length);
 
-    welcome_message->set_markup(Glib::ustring(contents));
-    // welcome_message->set_wrap(true);
-    welcome_message->set_justify(Gtk::Justification::CENTER);
+  //     welcome_message->set_markup(Glib::ustring(contents));
+  //     // welcome_message->set_wrap(true);
+  //     welcome_message->set_justify(Gtk::Justification::CENTER);
 
-    welcome_box->set_center_widget(*welcome_message);
-    welcome_box->set_expand();
+  //     welcome_box->set_center_widget(*welcome_message);
+  //     welcome_box->set_expand();
 
-    m_stack->add(*welcome_box, "Welcome", "Welcome");
+  //     m_stack->add(*welcome_box, "Welcome", "Welcome");
 
-    g_free(contents);
+  //     g_free(contents);
 
-  } catch (const Glib::Error &ex) {
-    std::cerr << ex.what() << std::endl;
-  }
+  //   } catch (const Glib::Error &ex) {
+  //     std::cerr << ex.what() << std::endl;
+  //   }
 
-  // Remove this line and create a action.
-  // createView();
+  //   // Remove this line and create a action.
+  //   // createView();
 }
 
 // static
@@ -198,7 +198,7 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
 
   auto input_entry = refBuilder->get_widget<Gtk::Entry>("input-entry");
   if (!input_entry)
-    throw std::runtime_error("No \"input-entry\" object in view.ui");
+  throw std::runtime_error("No \"input-entry\" object in view.ui");
 
   auto input_send_button =
       refBuilder->get_widget<Gtk::Button>("input-send-button");
@@ -277,6 +277,11 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   sp_workers.push_back(worker);
 
   // Connect gui signal with slots
+  Glib::Binding::bind_property(
+      input_entry->property_text(), input_send_button->property_sensitive(),
+      Glib::Binding::Flags::SYNC_CREATE, [](const Glib::ustring &text) -> bool {
+        return !Utils::trim(text).empty();
+      });
   Glib::SlotSpawnChildSetup send_entry_to_worker_slot = sigc::bind(
       sigc::mem_fun(*this,
                     &SPMAppWindow::on_activate_entry_and_clicked_send_button),
@@ -392,7 +397,8 @@ void SPMAppWindow::on_clear_output(Gtk::TextView *textView) {
 
 void SPMAppWindow::on_activate_entry_and_clicked_send_button(
     Gtk::Entry *entry, std::shared_ptr<SPWorker> worker) {
-  Glib::ustring msg = entry->get_text();
+  Glib::ustring msg = Utils::trim(entry->get_text());
+  if (msg.empty()) return;
   msg.append("\n");
   worker->send_data(msg.c_str(), msg.size());
   entry->set_text("");
@@ -400,7 +406,7 @@ void SPMAppWindow::on_activate_entry_and_clicked_send_button(
 
 void SPMAppWindow::on_worker_update(std::shared_ptr<SPWorker> worker,
                                     Gtk::TextView *textView) {
-  if (worker->get_shall_stop()) return;  // This is really needed
+  if (worker->get_shall_stop()) return;  // Is this really needed?
   auto buffer = textView->get_buffer();
   Gtk::TextBuffer::iterator iter = buffer->end();
 
@@ -463,34 +469,16 @@ void SPMAppWindow::on_text_view_changed(
 }
 
 void SPMAppWindow::on_export() {
-  auto view = get_visible_text_view();
-  if (!view) {
-    std::cout << "SPMAppWindow::on_search_text_changed(): No visible text view."
-              << std::endl;
-    return;
-  }
-  auto buffer = view->get_buffer();
+  auto dialog = Gtk::FileDialog::create();
+  dialog->set_initial_name(
+      "export_filename");  // TODO: Use the current tab name
 
-
-
-
-
-   auto dialog = Gtk::FileDialog::create();
-
-  // Add filters, so that only certain file types can be selected:
   auto filters = Gio::ListStore<Gtk::FileFilter>::create();
 
   auto filter_text = Gtk::FileFilter::create();
   filter_text->set_name("Text files");
   filter_text->add_mime_type("text/plain");
   filters->append(filter_text);
-
-  auto filter_cpp = Gtk::FileFilter::create();
-  filter_cpp->set_name("C/C++ files");
-  filter_cpp->add_mime_type("text/x-c");
-  filter_cpp->add_mime_type("text/x-c++");
-  filter_cpp->add_mime_type("text/x-c-header");
-  filters->append(filter_cpp);
 
   auto filter_any = Gtk::FileFilter::create();
   filter_any->set_name("Any files");
@@ -499,10 +487,32 @@ void SPMAppWindow::on_export() {
 
   dialog->set_filters(filters);
 
-  // Show the dialog and wait for a user response:
-  // dialog->open(sigc::bind(sigc::mem_fun(
-  //   *this, &ExampleWindow::on_file_dialog_finish), dialog));
+  sigc::slot<void(const Glib::RefPtr<Gio::AsyncResult> &)> slot =
+      [this, dialog](const Glib::RefPtr<Gio::AsyncResult> &result) {
+        try {
+          auto file = dialog->save_finish(result);
+          if (file) {
+            auto view = get_visible_text_view();
+            if (!view) {
+              std::cout << "SPMAppWindow::on_export(): No visible "
+                           "text view."
+                        << std::endl;
+              return;
+            }
 
+            auto buffer = view->get_buffer();
+            Glib::ustring text = buffer->get_text();
+            const std::string etag = {};
+            std::string new_etag;
+
+            file->replace_contents(text, etag, new_etag);
+          }
+        } catch (const Glib::Error &ex) {
+          std::cerr << "Error: " << ex.what() << std::endl;
+        }
+      };
+
+  dialog->save(slot);
 }
 
 void SPMAppWindow::update_words() {

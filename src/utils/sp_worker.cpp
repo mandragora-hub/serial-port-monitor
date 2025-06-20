@@ -3,9 +3,10 @@
 #include <chrono>
 #include <iostream>
 #include <thread>
+#include "utils.h"
 
 // TODO: This should be set in the settings
-#define MILLISECOND_THREAD_SLEEP 1500
+#define MILLISECOND_THREAD_SLEEP 400
 
 SPWorker::SPWorker(SerialPort* port) : m_serialport(port) {
   // Unique id
