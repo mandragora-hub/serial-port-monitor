@@ -32,11 +32,15 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   void on_parity_dropdown_changed(std::shared_ptr<SPWorker> worker,
                                   Gtk::DropDown *dropdown,
                                   Glib::RefPtr<Gio::Settings> port_settings);
-  void on_clear_output(Gtk::TextView *textView);
+  void on_clear_output(std::shared_ptr<SPWorker> worker, Gtk::TextView *textView);
   void on_activate_entry_and_clicked_send_button(
       Gtk::Entry *entry, std::shared_ptr<SPWorker> worker);
   void on_worker_update(std::shared_ptr<SPWorker> worker,
-                        Gtk::TextView *textView);
+                        Gtk::TextView *textView,
+                        Glib::RefPtr<Gio::Settings> port_settings);
+  void refresh_text_view(Glib::ustring key, std::shared_ptr<SPWorker> worker,
+                         Gtk::TextView *textView,
+                         Glib::RefPtr<Gio::Settings> port_settings);
   void on_close_current_tab();
   void on_text_view_changed(Gtk::TextView *textView,
                             Glib::RefPtr<Gio::Settings> port_settings);

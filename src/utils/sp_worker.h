@@ -47,7 +47,9 @@ class SPWorker {
 
   const DynamicBuffer *get_rx_buffer() const { return m_rx_buffer; }
 
-  std::vector<LogEntry> get_entries();
+  const std::vector<LogEntry> get_entries();
+  void clear_entries();
+  void insert_entries(Glib::ustring text, std::chrono::system_clock::time_point timestamp = std::chrono::system_clock::now());
 
  private:
   // Synchronizes access to member data.
@@ -62,7 +64,6 @@ class SPWorker {
   DynamicBuffer *m_tx_buffer = {nullptr};
 
   std::vector<LogEntry> log_entries;
-  void insert_entries(Glib::ustring text);
 
   bool m_shall_stop = false;
   bool m_has_stopped = false;

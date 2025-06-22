@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gtkmm-4.0/gtkmm.h>
+#include <chrono>
 
 #include <string>
 
@@ -29,6 +30,6 @@ class Utils {
  static Glib::ustring trim(const Glib::ustring& str);
 
   // default format: YYYY-MM-DD HH:MM:SS
-  static std::string get_timestamp_string(std::chrono::system_clock::time_point timestamp = std::chrono::system_clock::now(), std::string fmt = "%Y-%m-%d %H:%M:%S");
+  static std::string get_timestamp_string(std::chrono::_V2::system_clock::time_point timestamp = std::chrono::system_clock::now(), std::string fmt = "%Y-%m-%d %H:%M:%S");
 
 };  // namespace Utils

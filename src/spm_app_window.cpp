@@ -198,7 +198,7 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
 
   auto input_entry = refBuilder->get_widget<Gtk::Entry>("input-entry");
   if (!input_entry)
-  throw std::runtime_error("No \"input-entry\" object in view.ui");
+    throw std::runtime_error("No \"input-entry\" object in view.ui");
 
   auto input_send_button =
       refBuilder->get_widget<Gtk::Button>("input-send-button");
@@ -270,8 +270,9 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
 
   auto worker = std::make_shared<SPWorker>(sp);
   worker->set_name(basename);
-  worker->m_update_dispatcher.connect(sigc::bind(
-      sigc::mem_fun(*this, &SPMAppWindow::on_worker_update), worker, view));
+  worker->m_update_dispatcher.connect(
+      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_worker_update), worker,
+                 view, port_settings));
   worker->thread = new std::thread([this, worker] { worker->do_work(this); });
 
   sp_workers.push_back(worker);
@@ -289,7 +290,7 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   input_entry->signal_activate().connect(send_entry_to_worker_slot);
   input_send_button->signal_clicked().connect(send_entry_to_worker_slot);
   clearOutputButton->signal_clicked().connect(
-      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_clear_output), view));
+      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_clear_output), worker, view));
   bauds_dropdown->property_selected().signal_changed().connect(
       sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_bauds_dropdown_changed),
                  worker, bauds_dropdown, port_settings));
@@ -299,6 +300,11 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   view->get_buffer()->signal_changed().connect(
       sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_text_view_changed),
                  view, port_settings));
+
+  port_settings->signal_changed("show-timestamp")
+      .connect(sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::refresh_text_view),
+                          worker, view, port_settings));
+
   // m_WorkerTable.insert({basename, m_Worker});
   // view->set_buffer(m_Worker.get_rx_buffer());
   // auto buffer = view->get_buffer();
@@ -391,8 +397,9 @@ void SPMAppWindow::on_parity_dropdown_changed(
   if (port) port->set_parity(SerialPort::parity_from_name(value));
 }
 
-void SPMAppWindow::on_clear_output(Gtk::TextView *textView) {
+void SPMAppWindow::on_clear_output(std::shared_ptr<SPWorker> worker, Gtk::TextView *textView) {
   textView->get_buffer()->set_text("");  // TODO; this is the correct clear way?
+  worker->clear_entries();
 }
 
 void SPMAppWindow::on_activate_entry_and_clicked_send_button(
@@ -405,17 +412,54 @@ void SPMAppWindow::on_activate_entry_and_clicked_send_button(
 }
 
 void SPMAppWindow::on_worker_update(std::shared_ptr<SPWorker> worker,
-                                    Gtk::TextView *textView) {
+                                    Gtk::TextView *textView,
+                                    Glib::RefPtr<Gio::Settings> port_settings) {
   if (worker->get_shall_stop()) return;  // Is this really needed?
   auto buffer = textView->get_buffer();
-  Gtk::TextBuffer::iterator iter = buffer->end();
 
   Glib::ustring entry = Glib::ustring(worker->get_rx_buffer()->data(),
                                       worker->get_rx_buffer()->size());
+  entry = Utils::trim(entry);
+  if (entry.empty()) return;
 
-  buffer->insert(iter, entry);
+  bool showtimestamp = port_settings->get_boolean("show-timestamp");
 
+  auto regex = Glib::Regex::create("\\n");
+  std::vector<Glib::ustring> lines = regex->split(entry);
+  for (const auto &line : lines) {
+    auto timestamp = std::chrono::system_clock::now();
+    worker->insert_entries(line, timestamp);
+
+    std::ostringstream oss;
+    if (showtimestamp) {
+      oss << Utils::get_timestamp_string(timestamp) << ": ";
+    }
+    oss << line << std::endl;
+
+    Gtk::TextBuffer::iterator iter = buffer->end();
+    buffer->insert(iter, oss.str());
+  }
   worker->clearRX();
+}
+
+void SPMAppWindow::refresh_text_view(
+    Glib::ustring key,std::shared_ptr<SPWorker> worker, Gtk::TextView *textView,
+    Glib::RefPtr<Gio::Settings> port_settings) {
+  bool showtimestamp = port_settings->get_boolean("show-timestamp");
+  auto buffer = textView->get_buffer();
+  buffer->set_text(""); 
+
+  auto entries = worker->get_entries();
+  for (const auto &entry : entries) {
+    std::ostringstream oss;
+    if (showtimestamp) {
+      oss << Utils::get_timestamp_string(entry.timestamp) << ": ";
+    }
+    oss << entry.text << std::endl;
+
+    Gtk::TextBuffer::iterator iter = buffer->end();
+    buffer->insert(iter, oss.str());
+  }
 }
 
 void SPMAppWindow::on_close_current_tab() {

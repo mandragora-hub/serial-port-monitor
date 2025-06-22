@@ -2,7 +2,6 @@
 
 #include <bits/stdc++.h>
 
-#include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
@@ -60,9 +59,7 @@ Glib::ustring Utils::trim(const Glib::ustring& str) {
 
 // default format: YYYY-MM-DD HH:MM:SS
 std::string Utils::get_timestamp_string(
-    std::chrono::system_clock::time_point timestamp =
-        std::chrono::system_clock::now(),
-    std::string fmt = "%Y-%m-%d %H:%M:%S") {
+    std::chrono::_V2::system_clock::time_point timestamp, std::string fmt) {
   time_t currentTime_t =
       std::chrono::system_clock::to_time_t(timestamp);  // Convert to time_t
   std::tm* localTime =
