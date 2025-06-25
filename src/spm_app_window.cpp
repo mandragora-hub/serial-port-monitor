@@ -140,45 +140,6 @@ SPMAppWindow *SPMAppWindow::create() {
   return window;
 }
 
-void SPMAppWindow::createView() {
-  // const Glib::ustring basename = file->get_basename();
-  const Glib::ustring basename = "file->get_basename()";
-
-  auto refBuilder = Gtk::Builder::create_from_resource(
-      "/org/gtkmm/spmonitor/resources/view.ui");
-  auto view_box = refBuilder->get_widget<Gtk::Box>("view-box");
-  if (!view_box)
-    throw std::runtime_error("No \"lines_label\" object in window.ui");
-
-  auto view = refBuilder->get_widget<Gtk::TextView>("text-view");
-  if (!view) throw std::runtime_error("No \"lines_label\" object in window.ui");
-
-  m_stack->add(*view_box, basename, basename);
-
-  // auto buffer = view->get_buffer();
-  // try {
-  //   char *contents = nullptr;
-  //   gsize length = 0;
-
-  //   file->load_contents(contents, length);
-  //   buffer->set_text(contents, contents + length);
-  //   g_free(contents);
-  // } catch (const Glib::Error &ex) {
-  //   std::cout << "ExampleAppWindow::open_file_view(\"" <<
-  //   file->get_parse_name()
-  //             << "\"):\n  " << ex.what() << std::endl;
-  // }
-
-  // auto tag = buffer->create_tag();
-  // m_settings->bind("font", tag->property_font());
-  // buffer->apply_tag(tag, buffer->begin(), buffer->end());
-
-  // m_search->set_sensitive(true);
-
-  // update_words();
-  // update_lines();
-}
-
 void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   const Glib::ustring basename = file->get_basename();
 
@@ -616,10 +577,6 @@ void SPMAppWindow::update_lines() {
   }
   m_lines->set_text(Glib::ustring::format(count));
 }
-
-// Gtk::TextView *SPMAppWindow::get_text_view() {
-//   // TODO: implemented
-// }
 
 void SPMAppWindow::on_action_open_serial_port() {
   try {
