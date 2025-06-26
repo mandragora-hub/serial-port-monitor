@@ -29,9 +29,14 @@ class SPWorker {
   void send_data(const char *data, size_t size);
   void clearRX();
 
+  void set_name(Glib::ustring new_name) { name = new_name; }
+  const Glib::ustring get_name() const { return name; }
+
   SerialPort *get_port() const { return m_serialport; }
 
   bool get_shall_stop() const { return m_shall_stop; }
+
+  bool operator==(const SPWorker &other) const { return name == other.name; }
 
   // TODO: saving thread references here. is really the best places for it?
   std::thread *thread = {nullptr};
@@ -42,11 +47,14 @@ class SPWorker {
 
   const std::vector<LogEntry> get_entries();
   void clear_entries();
-  void insert_entries(Glib::ustring text, std::chrono::system_clock::time_point timestamp = std::chrono::system_clock::now());
+  void insert_entries(Glib::ustring text,
+                      std::chrono::system_clock::time_point timestamp =
+                          std::chrono::system_clock::now());
 
  private:
   // Synchronizes access to member data.
   mutable std::mutex mutex;
+  Glib::ustring name;
 
   SerialPort *m_serialport = {nullptr};
 
@@ -58,5 +66,6 @@ class SPWorker {
   bool m_shall_stop = false;
   bool m_has_stopped = false;
 };
+// namespace std
 
 #endif  // SP_WORKER_H
