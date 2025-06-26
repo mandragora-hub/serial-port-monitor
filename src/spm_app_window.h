@@ -32,7 +32,8 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   void on_parity_dropdown_changed(std::shared_ptr<SPWorker> worker,
                                   Gtk::DropDown *dropdown,
                                   Glib::RefPtr<Gio::Settings> port_settings);
-  void on_clear_output(std::shared_ptr<SPWorker> worker, Gtk::TextView *textView);
+  void on_clear_output(std::shared_ptr<SPWorker> worker,
+                       Gtk::TextView *textView);
   void on_activate_entry_and_clicked_send_button(
       Gtk::Entry *entry, std::shared_ptr<SPWorker> worker);
   void on_worker_update(std::shared_ptr<SPWorker> worker,
@@ -46,6 +47,7 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
                             Glib::RefPtr<Gio::Settings> port_settings);
   void on_export();
   void on_action_open_serial_port();
+  void on_font_changed(Glib::ustring key, Gtk::TextView *textView);
 
   // actions
   // TODO: maybe all actions should be move it to private scope
@@ -75,6 +77,7 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
 
   std::string normalize_port_path(std::string port_path);
   Gtk::TextView *get_visible_text_view();
+  Glib::RefPtr<Gtk::TextTag> create_default_style_tag(Gtk::TextView *textView); 
 };
 
 #endif  // SPM_APP_WINDOW_H

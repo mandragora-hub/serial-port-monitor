@@ -250,8 +250,8 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
       input_entry, worker);
   input_entry->signal_activate().connect(send_entry_to_worker_slot);
   input_send_button->signal_clicked().connect(send_entry_to_worker_slot);
-  clearOutputButton->signal_clicked().connect(
-      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_clear_output), worker, view));
+  clearOutputButton->signal_clicked().connect(sigc::bind(
+      sigc::mem_fun(*this, &SPMAppWindow::on_clear_output), worker, view));
   bauds_dropdown->property_selected().signal_changed().connect(
       sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_bauds_dropdown_changed),
                  worker, bauds_dropdown, port_settings));
@@ -263,28 +263,11 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
                  view, port_settings));
 
   port_settings->signal_changed("show-timestamp")
-      .connect(sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::refresh_text_view),
-                          worker, view, port_settings));
-
-  // m_WorkerTable.insert({basename, m_Worker});
-  // view->set_buffer(m_Worker.get_rx_buffer());
-  // auto buffer = view->get_buffer();
-  // try {
-  //   char *contents = nullptr;
-  //   gsize length = 0;
-
-  //   file->load_contents(contents, length);
-  //   buffer->set_text(contents, contents + length);
-  //   g_free(contents);
-  // } catch (const Glib::Error &ex) {
-  //   std::cout << "ExampleAppWindow::open_file_view(\"" <<
-  //   file->get_parse_name()
-  //             << "\"):\n  " << ex.what() << std::endl;
-  // }
-
-  // auto tag = buffer->create_tag();
-  // m_settings->bind("font", tag->property_font());
-  // buffer->apply_tag(tag, buffer->begin(), buffer->end());
+      .connect(
+          sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::refresh_text_view),
+                     worker, view, port_settings));
+  m_settings->signal_changed("font").connect(
+      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_font_changed), view));
 
   // m_search->set_sensitive(true);
 
@@ -358,7 +341,8 @@ void SPMAppWindow::on_parity_dropdown_changed(
   if (port) port->set_parity(SerialPort::parity_from_name(value));
 }
 
-void SPMAppWindow::on_clear_output(std::shared_ptr<SPWorker> worker, Gtk::TextView *textView) {
+void SPMAppWindow::on_clear_output(std::shared_ptr<SPWorker> worker,
+                                   Gtk::TextView *textView) {
   textView->get_buffer()->set_text("");  // TODO; this is the correct clear way?
   worker->clear_entries();
 }
@@ -377,6 +361,7 @@ void SPMAppWindow::on_worker_update(std::shared_ptr<SPWorker> worker,
                                     Glib::RefPtr<Gio::Settings> port_settings) {
   if (worker->get_shall_stop()) return;  // Is this really needed?
   auto buffer = textView->get_buffer();
+  auto tag = create_default_style_tag(textView);
 
   Glib::ustring entry = Glib::ustring(worker->get_rx_buffer()->data(),
                                       worker->get_rx_buffer()->size());
@@ -398,17 +383,18 @@ void SPMAppWindow::on_worker_update(std::shared_ptr<SPWorker> worker,
     oss << line << std::endl;
 
     Gtk::TextBuffer::iterator iter = buffer->end();
-    buffer->insert(iter, oss.str());
+    buffer->insert_with_tag(iter, oss.str(), tag);
   }
   worker->clearRX();
 }
 
 void SPMAppWindow::refresh_text_view(
-    Glib::ustring key,std::shared_ptr<SPWorker> worker, Gtk::TextView *textView,
-    Glib::RefPtr<Gio::Settings> port_settings) {
+    Glib::ustring key, std::shared_ptr<SPWorker> worker,
+    Gtk::TextView *textView, Glib::RefPtr<Gio::Settings> port_settings) {
   bool showtimestamp = port_settings->get_boolean("show-timestamp");
+  auto tag = create_default_style_tag(textView);
   auto buffer = textView->get_buffer();
-  buffer->set_text(""); 
+  buffer->set_text("");
 
   auto entries = worker->get_entries();
   for (const auto &entry : entries) {
@@ -419,7 +405,7 @@ void SPMAppWindow::refresh_text_view(
     oss << entry.text << std::endl;
 
     Gtk::TextBuffer::iterator iter = buffer->end();
-    buffer->insert(iter, oss.str());
+    buffer->insert_with_tag(iter, oss.str(), tag);
   }
 }
 
@@ -595,6 +581,12 @@ void SPMAppWindow::on_action_open_serial_port() {
   }
 }
 
+void SPMAppWindow::on_font_changed(Glib::ustring key, Gtk::TextView *textView) {
+  auto buffer = textView->get_buffer();
+  auto tag = create_default_style_tag(textView);
+  buffer->apply_tag(tag, buffer->begin(), buffer->end());
+}
+
 std::string SPMAppWindow::normalize_port_path(std::string port_path) {
   size_t pos = port_path.rfind("/");
   std::string port_name =
@@ -628,4 +620,18 @@ Gtk::TextView *SPMAppWindow::get_visible_text_view() {
     return nullptr;
   }
   return view;
+}
+
+Glib::RefPtr<Gtk::TextTag> SPMAppWindow::create_default_style_tag(
+    Gtk::TextView *textView) {
+  auto buffer = textView->get_buffer();
+  auto tag = buffer->create_tag();
+
+  const Glib::ustring fontValue = m_settings->get_string("font");
+  tag->property_font() = fontValue;
+  // tag->property_pixels_above_lines() = 0;
+  // tag->property_letter_spacing() = 0;
+  // tag->property_pixels_below_lines() = 0;
+
+  return tag;
 }
