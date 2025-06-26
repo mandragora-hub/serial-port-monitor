@@ -71,16 +71,7 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
   Glib::RefPtr<Glib::Binding> m_binding_lines_visible;
 
  private:
-  Gtk::TextView *get_text_view();
-  void createView();
-
-  // SerialPort *serialPort{nullptr};
-  // SPWorker m_Worker;
-
-  // std::unordered_map<std::string, SPWorker> m_WorkerTable;
   std::vector<std::shared_ptr<SPWorker>> sp_workers;
-
-  Glib::Dispatcher m_Dispatcher;
 
   std::string normalize_port_path(std::string port_path);
   Gtk::TextView *get_visible_text_view();
