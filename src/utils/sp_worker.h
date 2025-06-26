@@ -29,16 +29,9 @@ class SPWorker {
   void send_data(const char *data, size_t size);
   void clearRX();
 
-  void set_name(Glib::ustring new_name) { name = new_name; }
-  const Glib::ustring get_name() const { return name; }
-
   SerialPort *get_port() const { return m_serialport; }
 
   bool get_shall_stop() const { return m_shall_stop; }
-
-  bool operator==(const SPWorker &other) const { return id == other.id; }
-
-  uintptr_t getID() const { return id; }
 
   // TODO: saving thread references here. is really the best places for it?
   std::thread *thread = {nullptr};
@@ -55,9 +48,6 @@ class SPWorker {
   // Synchronizes access to member data.
   mutable std::mutex mutex;
 
-  Glib::ustring name; // remove me
-  uintptr_t id;
-
   SerialPort *m_serialport = {nullptr};
 
   DynamicBuffer *m_rx_buffer = {nullptr};
@@ -68,16 +58,5 @@ class SPWorker {
   bool m_shall_stop = false;
   bool m_has_stopped = false;
 };
-
-// provide a hash function for use with std::map
-namespace std {
-template <>
-struct hash<SPWorker> {
-  std::size_t operator()(const SPWorker &w) const noexcept {
-    std::size_t h1 = std::hash<int>{}(w.getID());
-    return h1;
-  }
-};
-}  // namespace std
 
 #endif  // SP_WORKER_H

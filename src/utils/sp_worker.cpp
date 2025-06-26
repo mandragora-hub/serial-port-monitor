@@ -9,9 +9,6 @@
 #define MILLISECOND_THREAD_SLEEP 400
 
 SPWorker::SPWorker(SerialPort* port) : m_serialport(port) {
-  // Unique id
-  id = reinterpret_cast<uintptr_t>(port);
-
   m_rx_buffer = new DynamicBuffer();
   m_tx_buffer = new DynamicBuffer();
 }
