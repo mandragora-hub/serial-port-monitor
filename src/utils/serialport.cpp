@@ -198,8 +198,8 @@ int SerialPort::wait(unsigned int timeout, sp_event mask) {
   // I have no idea of how works this function, i dont understand de docs, I
   // know it will wait for a ready state for sp_event, but alway return 0, i
   // mean always is ready
-  std::cout << "debug: wait will return " << result << " for mask " << mask
-            << std::endl;
+  // std::cout << "debug: wait will return " << result << " for mask " << mask
+  //           << std::endl;
 
   /* free resources. */
   sp_free_event_set(event_set);
