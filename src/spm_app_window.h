@@ -22,32 +22,34 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
 
  protected:
   // Signal handlers:
+  void on_action_open_serial_port();
   void on_search_text_changed();
   void on_visible_child_changed();
   void on_find_word(const Gtk::Button *button);
   void on_reveal_child_changed();
-  void on_bauds_dropdown_changed(std::shared_ptr<SPWorker> worker,
-                                 Gtk::DropDown *dropdown,
-                                 Glib::RefPtr<Gio::Settings> port_settings);
-  void on_parity_dropdown_changed(std::shared_ptr<SPWorker> worker,
-                                  Gtk::DropDown *dropdown,
-                                  Glib::RefPtr<Gio::Settings> port_settings);
-  void on_clear_output(std::shared_ptr<SPWorker> worker,
-                       Gtk::TextView *textView);
-  void on_activate_entry_and_clicked_send_button(
-      Gtk::Entry *entry, std::shared_ptr<SPWorker> worker);
   void on_worker_update(std::shared_ptr<SPWorker> worker,
                         Gtk::TextView *textView,
                         Glib::RefPtr<Gio::Settings> port_settings);
   void refresh_text_view(Glib::ustring key, std::shared_ptr<SPWorker> worker,
                          Gtk::TextView *textView,
                          Glib::RefPtr<Gio::Settings> port_settings);
-  void on_close_current_tab();
+  void on_clear_output(std::shared_ptr<SPWorker> worker,
+                       Gtk::TextView *textView);
+  void on_activate_entry_and_clicked_send_button(
+      Gtk::Entry *entry, std::shared_ptr<SPWorker> worker);
   void on_text_view_changed(Gtk::TextView *textView,
                             Glib::RefPtr<Gio::Settings> port_settings);
   void on_export();
-  void on_action_open_serial_port();
+  void on_close_current_tab();
+  // UI style
   void on_font_changed(Glib::ustring key, Gtk::TextView *textView);
+  // Port configuration
+  void on_bauds_dropdown_changed(std::shared_ptr<SPWorker> worker,
+                                 Gtk::DropDown *dropdown,
+                                 Glib::RefPtr<Gio::Settings> port_settings);
+  void on_parity_dropdown_changed(std::shared_ptr<SPWorker> worker,
+                                  Gtk::DropDown *dropdown,
+                                  Glib::RefPtr<Gio::Settings> port_settings);
 
   // actions
   // TODO: maybe all actions should be move it to private scope
@@ -77,7 +79,7 @@ class SPMAppWindow : public Gtk::ApplicationWindow {
 
   std::string normalize_port_path(std::string port_path);
   Gtk::TextView *get_visible_text_view();
-  Glib::RefPtr<Gtk::TextTag> create_default_style_tag(Gtk::TextView *textView); 
+  Glib::RefPtr<Gtk::TextTag> create_default_style_tag(Gtk::TextView *textView);
 };
 
 #endif  // SPM_APP_WINDOW_H
