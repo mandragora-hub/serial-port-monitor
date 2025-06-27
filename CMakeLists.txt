@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.0.2)
 
-project(arduino-serial-port-communication VERSION 0.1.0 LANGUAGES C CXX)
+project(sp-monitor VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,7 +20,7 @@ add_definitions(${GTKMM_CFLAGS_OTHER})
 
 include(lib/external-dependencies.cmake)
 
-# add_library(arduino-serial-port-communication-lib
+# add_library(sp-monitor-lib
 #     src/serial_port.cpp
 #     src/serial_port.h
 # )
@@ -73,8 +73,8 @@ add_dependencies(sources_files libserialport)
 
 target_link_libraries(sources_files PUBLIC ${install_dir}/lib/libserialport.a)
 
-add_executable(arduino-serial-port-communication src/main.cpp)
-target_link_libraries(arduino-serial-port-communication resources_files sources_files ${GTKMM_LIBRARIES})
+add_executable(sp-monitor src/main.cpp)
+target_link_libraries(sp-monitor resources_files sources_files ${GTKMM_LIBRARIES})
 
 include(CTest)
 enable_testing()
