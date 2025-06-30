@@ -22,10 +22,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install gtkmm development packages
+    - name: Install vcpkg
       run: |
-        sudo apt-get update
-        sudo apt-get install -y libgtkmm-4.0-dev # For gtkmm4
+        git clone https://github.com/microsoft/vcpkg.git
+        ./vcpkg/bootstrap-vcpkg.sh -disableMetrics # Use .bat for Windows
+
+    - name: Install gtkmm with vcpkg
+      run: |
+        ./vcpkg/vcpkg install gtkmm # For gtkmm4
     
     - name: Install CMake
       uses: lukka/get-cmake@v4.0.2
