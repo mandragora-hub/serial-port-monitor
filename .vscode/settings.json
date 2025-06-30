@@ -5,9 +5,12 @@
   ],
   "cSpell.words": [
     "CFLAGS",
+    "cpack",
     "CPACK",
     "crossfade",
+    "ctest",
     "gresource",
+    "gtkmm",
     "GTKMM",
     "gvariant",
     "libserialport",

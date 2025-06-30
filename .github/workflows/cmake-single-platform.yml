@@ -37,6 +37,12 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}}
 
+    - name: Generate Bundles
+      working-directory: ${{github.workspace}}/build
+      run: |
+        make package_source
+        cpack -G DEB
+
   release:
     needs: build
     runs-on: ubuntu-latest
