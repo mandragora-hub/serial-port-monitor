@@ -46,7 +46,7 @@ jobs:
     - name: Upload artifact 
       uses: actions/upload-artifact@v4
       with:
-        name: bundles
+        name: Bundles
         path: |
           build/*.tar.gz
           build/*.zip
@@ -68,14 +68,16 @@ jobs:
       - name: Download artifact  
         uses: actions/download-artifact@v4
         with:
-          name: bundles
+          name: Bundles
           path: build
+      - name: Display structure of downloaded files
+        run: ls -R build
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+      # - name: Release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: npx semantic-release
 
