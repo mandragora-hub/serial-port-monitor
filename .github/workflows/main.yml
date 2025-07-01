@@ -60,11 +60,11 @@ jobs:
       uses: lukka/get-cmake@v4.0.2
       
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -DPROJECT_VERSION_OVERRIDE="${{steps.dry_run.outputs.next_version}}"  -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
       if: ${{ steps.dry_run.outputs.next_version != '' }} # Only run if a version was determined
-      run: cmake -DPROJECT_VERSION_OVERRIDE="${{steps.dry_run.outputs.next_version}}" --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Test
       working-directory: ${{github.workspace}}/build
