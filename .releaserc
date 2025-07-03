@@ -9,7 +9,8 @@
     "@semantic-release/release-notes-generator",
     "@semantic-release/github", {
         "assets": [
-            { "path": "build/*" }
+            { "path": "build/*.tar.gz" },
+            { "path": "build/*.zip" }
         ]
     }
   ]
