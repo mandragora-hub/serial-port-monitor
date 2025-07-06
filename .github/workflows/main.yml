@@ -82,7 +82,7 @@ jobs:
     - name: DEBUGGING
       run: |
         ls 
-        ls /build
+        ls build
 
     - name: Release
       if: ${{ steps.dry_run.outputs.next_version != '' }} # Only run if a version was determined
