@@ -1,8 +1,6 @@
 name: Main CI/CD
 
 on:
-  push:
-    branches: [ "master" ]
   workflow_dispatch: 
 
 env:
@@ -88,5 +86,5 @@ jobs:
       if: ${{ steps.dry_run.outputs.next_version != '' }} # Only run if a version was determined
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npx semantic-release
+      run: npx semantic-release --debug true
 
