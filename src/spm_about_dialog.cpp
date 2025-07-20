@@ -19,7 +19,7 @@ SPMAboutDialog::SPMAboutDialog(
     // auto welcome_box = Gtk::make_managed<Gtk::CenterBox>();
 
     Glib::RefPtr<Gio::File> about_text_file = Gio::File::create_for_uri(
-        "resource:///org/gtkmm/spmonitor/resources/about_text.xml");
+        "resource:///org/gtkmm/spmonitor/ui/about_text.xml");
     char *contents = nullptr;
     gsize length = 0;
 
@@ -77,7 +77,7 @@ SPMAboutDialog::SPMAboutDialog(
 SPMAboutDialog* SPMAboutDialog::create(Gtk::Window& parent) {
   // Load the builder file and instantiate its widgets.
   auto refBuilder =
-      Gtk::Builder::create_from_resource("/org/gtkmm/spmonitor/resources/about_dialog.ui");
+      Gtk::Builder::create_from_resource("/org/gtkmm/spmonitor/ui/about_dialog.ui");
 
   auto dialog = Gtk::Builder::get_widget_derived<SPMAboutDialog>(
       refBuilder, "about_dialog");

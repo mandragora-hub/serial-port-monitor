@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=@PROJECT_VERSION@
+Type=Application
+Name=sp-monitor
+Comment=Serial Port Monitor
+TryExec=@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@/sp-monitor
+Exec=@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@/sp-monitor
+Icon=sp-monitor
+MimeType=image/x-foo;
+Categories=GNOME;GTK;Utility;
+StartupNotify=true

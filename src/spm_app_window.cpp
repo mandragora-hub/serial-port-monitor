@@ -73,7 +73,7 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
 
   // Connect the menu to MenuButton.
   auto menu_builder = Gtk::Builder::create_from_resource(
-      "/org/gtkmm/spmonitor/resources/gears_menu.ui");
+      "/org/gtkmm/spmonitor/ui/gears_menu.ui");
   auto menu = menu_builder->get_object<Gio::MenuModel>("menu");
   if (!menu) throw std::runtime_error("No \"menu\" object in gears_menu.ui");
 
@@ -93,8 +93,8 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
 
   // Set window icon
   Gtk::IconTheme::get_for_display(get_display())
-      ->add_resource_path("/org/gtkmm/spmonitor/resources");
-  set_icon_name("logo");
+      ->add_resource_path("/org/gtkmm/spmonitor");
+  set_icon_name("sp-monitor");
 
   // Create welcome message
   //   try {
@@ -102,7 +102,7 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
   //     auto welcome_box = Gtk::make_managed<Gtk::CenterBox>();
 
   //     Glib::RefPtr<Gio::File> msg_file = Gio::File::create_for_uri(
-  //         "resource:///org/gtkmm/spmonitor/resources/welcome_msg.xml");
+  //         "resource:///org/gtkmm/spmonitor/welcome_msg.xml");
   //     char *contents = nullptr;
   //     gsize length = 0;
 
@@ -130,7 +130,7 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
 // static
 SPMAppWindow *SPMAppWindow::create() {
   auto refBuilder = Gtk::Builder::create_from_resource(
-      "/org/gtkmm/spmonitor/resources/window.ui");
+      "/org/gtkmm/spmonitor/ui/window.ui");
 
   auto window =
       Gtk::Builder::get_widget_derived<SPMAppWindow>(refBuilder, "app_window");
@@ -144,7 +144,7 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   const Glib::ustring basename = file->get_basename();
 
   auto refBuilder = Gtk::Builder::create_from_resource(
-      "/org/gtkmm/spmonitor/resources/view.ui");
+      "/org/gtkmm/spmonitor/ui/view.ui");
   auto view_box = refBuilder->get_widget<Gtk::Box>("view-box");
   if (!view_box)
     throw std::runtime_error("No \"lines_label\" object in view.ui");

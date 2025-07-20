@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
   // Since this example is running uninstalled, we have to help it find
   // its schema. This is *not* necessary in a properly installed
   // application.
-  Glib::setenv("GSETTINGS_SCHEMA_DIR", ".", false);
+  // Glib::setenv("GSETTINGS_SCHEMA_DIR", ".", false);
 
   auto app = SPMApp::create();
   return app->run(argc, argv);

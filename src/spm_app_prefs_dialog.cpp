@@ -71,7 +71,7 @@ SPMAppPrefsDialog::SPMAppPrefsDialog(
 SPMAppPrefsDialog* SPMAppPrefsDialog::create(Gtk::Window& parent) {
   // Load the builder file and instantiate its widgets.
   auto refBuilder =
-      Gtk::Builder::create_from_resource("/org/gtkmm/spmonitor/resources/prefs.ui");
+      Gtk::Builder::create_from_resource("/org/gtkmm/spmonitor/ui/prefs.ui");
 
   auto dialog = Gtk::Builder::get_widget_derived<SPMAppPrefsDialog>(
       refBuilder, "prefs_dialog");

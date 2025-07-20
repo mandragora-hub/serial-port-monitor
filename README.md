@@ -1,7 +1,7 @@
 # Serial Port Monitor
 
 <p align=center>
-  <img src="./resources/logo.png">
+  <img src="./resources/sp-monitor.png">
 </p>
 
 > [!WARNING]

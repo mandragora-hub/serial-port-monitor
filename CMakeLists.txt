@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 4.0.2)
 
-set(PROJECT_VERSION_OVERRIDE "${PROJECT_VERSION}" CACHE STRING "Override project version")
-set(PROJECT_VERSION "${PROJECT_VERSION_OVERRIDE}") # Apply the override
+project(sp-monitor VERSION 0.0.1 LANGUAGES C CXX)
 
-project(sp-monitor VERSION ${PROJECT_VERSION} LANGUAGES C CXX)
+if(NOT DEFINED PROJECT_VERSION_OVERRIDE)
+    set(PROJECT_VERSION_OVERRIDE ${PROJECT_VERSION} CACHE STRING "Override project version")
+endif()
+set(PROJECT_VERSION "${PROJECT_VERSION_OVERRIDE}")
+message(STATUS "Building project version: ${PROJECT_VERSION}")
+
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,6 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 message(DEBUG "C++ compiler: ${CMAKE_CXX_COMPILER}")
 message(DEBUG "C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 
+include(GNUInstallDirs)
 
 # Installing GTKMM library
 find_package(PkgConfig REQUIRED)
@@ -28,57 +33,30 @@ include(lib/external-dependencies.cmake)
 #     src/serial_port.h
 # )
 
-# Generated resources files
-set(GLIB_COMPILE_RESOURCES_COMMAND "glib-compile-resources")
-set(resources_srcs "${CMAKE_CURRENT_BINARY_DIR}/resources.c")
-add_custom_command(
-      OUTPUT "${resources_srcs}"
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${GLIB_COMPILE_RESOURCES_COMMAND}
-      ARGS 
-        --target="${resources_srcs}"
-        --generate-source "${CMAKE_CURRENT_SOURCE_DIR}/resources/gresource.xml"
-      COMMENT "Compiling GResources"
-)
+add_subdirectory(resources)
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/resources") ## It allow to #include "resources.c"
 
-# Generated schemas files
-set(GLIB_COMPILE_SCHEMAS_COMMAND "glib-compile-schemas")
-set(schemas_srcs "${CMAKE_CURRENT_BINARY_DIR}")
-add_custom_command(
-      OUTPUT "${schemas_srcs}/gschemas.compiled"
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/resources
-      COMMAND ${GLIB_COMPILE_SCHEMAS_COMMAND} . ## current working dir
-      ARGS 
-        --targetdir="${schemas_srcs}"
-      COMMENT "Compiling GSchemas"
-)
-add_custom_target(
-    setting_schemas 
-    ALL
-    DEPENDS "${schemas_srcs}/gschemas.compiled"
-)
-
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-
-add_library(resources_files STATIC ${resources_srcs})
+add_subdirectory(scripts)
 
 # Use external dependencies => libserialport 
-ExternalProject_Get_property(libserialport install_dir)
-message(STATUS "Install directory of libserialport = ${install_dir}")
-include_directories(${install_dir}/include)
+ExternalProject_Get_property(libserialport INSTALL_DIR)
+message(STATUS "Install directory of libserialport = ${INSTALL_DIR}")
+include_directories(${INSTALL_DIR}/include)
 
 # Add sources files
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
 list(REMOVE_ITEM SOURCES "src/main.cpp")
 add_library(sources_files STATIC ${SOURCES})
-
 add_dependencies(sources_files libserialport)
+target_link_libraries(sources_files PUBLIC resources_files ${INSTALL_DIR}/lib/libserialport.a)
 
-target_link_libraries(sources_files PUBLIC ${install_dir}/lib/libserialport.a)
-
+# Main executable
 add_executable(sp-monitor src/main.cpp)
 target_link_libraries(sp-monitor resources_files sources_files ${GTKMM_LIBRARIES})
+add_dependencies(sp-monitor compile_schemas) 
+install(TARGETS sp-monitor DESTINATION bin COMPONENT binaries)
 
+# Enable CTest
 include(CTest)
 enable_testing()
 
