@@ -1,14 +1,14 @@
 # appimage-builder recipe see https://appimage-builder.readthedocs.io for details
 version: 1
 script:
-  - rm -rf $(pwd)/AppDir/home # home directory is't need, for some reason the make install create the folder with the external lib.
+  - echo "Creating appimage..."
 AppDir:
   path: /work/AppDir
   app_info:
     id: sp-monitor
     name: sp-monitor
     icon: sp-monitor
-    version: @PROJECT_VERSION@
+    version: "@PROJECT_VERSION@"
     exec: usr/bin/sp-monitor
     exec_args: $@
   files:

@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 4.0.2)
+cmake_minimum_required(VERSION 4.1.0)
 
-project(sp-monitor VERSION 0.0.1 LANGUAGES C CXX)
+project(sp-monitor VERSION 1.0.0 LANGUAGES C CXX)
 
 if(NOT DEFINED PROJECT_VERSION_OVERRIDE)
     set(PROJECT_VERSION_OVERRIDE ${PROJECT_VERSION} CACHE STRING "Override project version")
@@ -54,7 +54,7 @@ target_link_libraries(sources_files PUBLIC resources_files ${INSTALL_DIR}/lib/li
 add_executable(sp-monitor src/main.cpp)
 target_link_libraries(sp-monitor resources_files sources_files ${GTKMM_LIBRARIES})
 add_dependencies(sp-monitor compile_schemas) 
-install(TARGETS sp-monitor DESTINATION bin COMPONENT binaries)
+install(TARGETS sp-monitor DESTINATION bin)
 
 # Enable CTest
 include(CTest)

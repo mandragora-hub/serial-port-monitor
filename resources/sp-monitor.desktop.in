@@ -1,5 +1,4 @@
 [Desktop Entry]
-Version=@PROJECT_VERSION@
 Type=Application
 Name=sp-monitor
 Comment=Serial Port Monitor

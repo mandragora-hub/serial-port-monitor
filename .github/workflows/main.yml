@@ -55,11 +55,11 @@ jobs:
         sudo apt-get install -y libgtkmm-4.0-dev # For gtkmm4
     
     - name: Install CMake
-      uses: lukka/get-cmake@v4.0.2
+      uses: lukka/get-cmake@v4.1.0
       
     - name: Configure CMake
       if: ${{ steps.dry_run.outputs.next_version != '' }} # Only run if a version was determined
-      run: cmake -DPROJECT_VERSION_OVERRIDE="${{steps.dry_run.outputs.next_version}}"  -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -DPROJECT_VERSION_OVERRIDE="${{steps.dry_run.outputs.next_version}}" -DCMAKE_INSTALL_PREFIX=/usr -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
       if: ${{ steps.dry_run.outputs.next_version != '' }} # Only run if a version was determined

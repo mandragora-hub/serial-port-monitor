@@ -26,23 +26,21 @@ add_custom_command(
       # ARGS   
       COMMENT "Compiling GSchemas"
 )
-
 add_custom_target(
     compile_schemas 
     ALL
     DEPENDS "${COMPILED_SCHEMA_OUTPUT_DIR}/gschemas.compiled"
 )
 install(FILES "${COMPILED_SCHEMA_OUTPUT_DIR}/gschemas.compiled"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/local/${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas"
-        COMPONENT Runtime 
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas"
 )
 
 configure_file(sp-monitor.desktop.in sp-monitor.desktop @ONLY)
 configure_file(AppImageBuilder.yml.in AppImageBuilder.yml @ONLY)
 
 # 
-install(FILES ${CMAKE_BINARY_DIR}/resources/sp-monitor.desktop DESTINATION share/applications/ COMPONENT desktop)
-install(FILES sp-monitor.png DESTINATION share/icons/hicolor/256x256/apps COMPONENT desktop)
+install(FILES ${CMAKE_BINARY_DIR}/resources/sp-monitor.desktop DESTINATION share/applications/)
+install(FILES sp-monitor.png DESTINATION share/icons/hicolor/256x256/apps)
 
 # Copy Appimage recipe
 # file(REMOVE "${CMAKE_BINARY_DIR}/AppImageBuilder.yml")
