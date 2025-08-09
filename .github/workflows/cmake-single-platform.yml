@@ -25,7 +25,7 @@ jobs:
         sudo apt-get install -y libgtkmm-4.0-dev # For gtkmm4
     
     - name: Install CMake
-      uses: lukka/get-cmake@v4.1.0
+      uses: lukka/get-cmake@v4.0.2
       
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}

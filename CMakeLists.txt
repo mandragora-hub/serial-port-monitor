@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.1.0)
+cmake_minimum_required(VERSION 4.0.2)
 
 project(sp-monitor VERSION 1.0.0 LANGUAGES C CXX)
 
