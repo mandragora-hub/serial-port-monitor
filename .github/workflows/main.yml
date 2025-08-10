@@ -90,7 +90,7 @@ jobs:
         recipe: ./build/resources/AppImageBuilder.yml
     
     - name: Move AppImage to build folder  
-      working-directory: ${{github.workspace}}/buildgit 
+      working-directory: ${{github.workspace}}/build 
       run: mv *AppImage build 
 
       # - uses: actions/upload-artifact@v2
