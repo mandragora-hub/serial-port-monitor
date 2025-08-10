@@ -3,7 +3,7 @@ version: 1
 script:
   - echo "Creating appimage..."
 AppDir:
-  path: /work/AppDir
+  path: AppDir
   app_info:
     id: sp-monitor
     name: sp-monitor

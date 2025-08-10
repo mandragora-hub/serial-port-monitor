@@ -76,6 +76,10 @@ jobs:
     - name: Packaging build assets 
       working-directory: ${{github.workspace}}/build
       run: cpack -G DEB         
+    
+    - name: Create AppDir folder 
+      working-directory: ${{github.workspace}}/build
+      run: make install DESTDIR=../AppDir       
       
     - name: Build AppImage
       uses: AppImageCrafters/build-appimage-action@master
