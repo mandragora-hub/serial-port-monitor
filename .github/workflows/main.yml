@@ -81,6 +81,7 @@ jobs:
       uses: AppImageCrafters/build-appimage-action@master
       env:
         UPDATE_INFO: gh-releases-zsync|AppImageCrafters|sp-monitor|latest|*x86_64.AppImage.zsync
+        ARCH: x86_64
       with:
         recipe: ./build/resources/AppImageBuilder.yml
     
