@@ -1,4 +1,4 @@
-kjkjkjname: Main CI/CD
+name: Main CI/CD
 
 on:
   workflow_dispatch: 
