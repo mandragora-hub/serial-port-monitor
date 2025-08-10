@@ -2,6 +2,8 @@
 version: 1
 script:
   - echo "Creating appimage..."
+  # Ensure that the mksquashfs tool is installed (workaround for the AppImageCrafters/build-appimage GHA)
+  - which mksquashfs || apt install squashfs-tools 
 AppDir:
   path: AppDir
   app_info:
@@ -19,6 +21,19 @@ AppDir:
     - usr/share/doc/*/changelog.*
     - usr/share/doc/*/NEWS.*
     - usr/share/doc/*/TODO.*
+  apt:
+    arch: amd64
+    sources:
+      - sourceline: 'deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ bionic main restricted universe multiverse'
+        key_url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x3b4fe6acc0b21f32'
+      - sourceline: 'deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ bionic-updates main restricted'
+        key_url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x3b4fe6acc0b21f32'
+      - sourceline: 'deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main'
+        key_url: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xba6932366a755776'
+      - sourceline: 'deb http://ppa.launchpad.net/fbirlik/sqlite3/ubuntu bionic main'
+        key_url: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x17e1dd50b8a4f9c1'
+    include: []
+    exclude: []
   test:
     fedora-30:
       image: appimagecrafters/tests-env:fedora-30
