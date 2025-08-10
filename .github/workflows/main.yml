@@ -82,7 +82,7 @@ jobs:
       env:
         UPDATE_INFO: gh-releases-zsync|AppImageCrafters|sp-monitor|latest|*x86_64.AppImage.zsync
       with:
-        recipe: AppImageBuilder.yml
+        recipe: ./build/resources/AppImageBuilder.yml
     
     - name: Move AppImage to build folder  
       working-directory: ${{github.workspace}}/buildgit 
