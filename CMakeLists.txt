@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 4.0.2)
 
-project(sp-monitor VERSION 1.0.0 LANGUAGES C CXX)
-
-if(NOT DEFINED PROJECT_VERSION_OVERRIDE)
-    set(PROJECT_VERSION_OVERRIDE ${PROJECT_VERSION} CACHE STRING "Override project version")
+if(NOT DEFINED PROJECT_VERSION)
+set(PROJECT_VERSION "1.0.0")
+else()
+set(PROJECT_VERSION "${PROJECT_VERSION}" CACHE STRING "Override project version")
 endif()
-set(PROJECT_VERSION "${PROJECT_VERSION_OVERRIDE}")
+
+project(sp-monitor VERSION ${PROJECT_VERSION} LANGUAGES C CXX)
 message(STATUS "Building project version: ${PROJECT_VERSION}")
 
 
@@ -62,7 +63,6 @@ enable_testing()
 
 # Packaging support
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 # set(CPACK_PACKAGE_VENDOR "Vendor name")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A basic serial port monitor that lets you view and log data from serial devices in real time.")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
