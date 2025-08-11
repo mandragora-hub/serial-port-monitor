@@ -13,7 +13,8 @@
         "assets": [
           "build/*.deb",
           "build/*.tar.gz",
-          "build/*.zip"
+          "build/*.zip",
+          "build/*.AppImage"
         ]
       }
     ]
