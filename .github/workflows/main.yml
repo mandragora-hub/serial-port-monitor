@@ -102,9 +102,9 @@ jobs:
         ls -a
         ls build -a
 
-    # - name: Release
-    #   if: ${{ steps.dry_run.outputs.next_version != '' }} # Only run if a version was determined
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   run: npx semantic-release --debug true
+    - name: Release
+      if: ${{ steps.dry_run.outputs.next_version != '' }} # Only run if a version was determined
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npx semantic-release --debug true
 
