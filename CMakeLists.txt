@@ -64,12 +64,14 @@ enable_testing()
 # Packaging support
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 # set(CPACK_PACKAGE_VENDOR "Vendor name")
+
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A basic serial port monitor that lets you view and log data from serial devices in real time.")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 set(CPACK_SOURCE_IGNORE_FILES
-    /.git
+    /.git 
     /.vscode
     /.*build.*
     /\\\\.DS_Store
@@ -77,12 +79,11 @@ set(CPACK_SOURCE_IGNORE_FILES
 
 set(CPACK_PACKAGE_CONTACT "royer01gomez@gmail.com")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Royer Gomez")
-
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgtkmm-4.0-0 (>= 4.10)")
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/mandragora-hub/serial-port-monitor")
 set(CPACK_DEBIAN_PACKAGE_LICENSE "MIT")
 # set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
 # set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)#ONE_PER_GROUP)
-set(CPACK_DEB_COMPONENT_INSTALL YES)
+# set(CPACK_DEB_COMPONENT_INSTALL YES)
 
 include(CPack)
