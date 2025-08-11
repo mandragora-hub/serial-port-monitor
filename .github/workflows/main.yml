@@ -59,7 +59,7 @@ jobs:
       
     - name: Configure CMake
       if: ${{ steps.dry_run.outputs.next_version != '' }} # Only run if a version was determined
-      run: cmake -PROJECT_VERSION="${{steps.dry_run.outputs.next_version}}" -DCMAKE_INSTALL_PREFIX=/usr -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -DPROJECT_VERSION="${{steps.dry_run.outputs.next_version}}" -DCMAKE_INSTALL_PREFIX=/usr -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
       if: ${{ steps.dry_run.outputs.next_version != '' }} # Only run if a version was determined
