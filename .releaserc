@@ -7,13 +7,15 @@
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    "@semantic-release/github",
-    {
-      "assets": [
-        { "path": "build/*.deb", "label": "deb file"},
-        { "path": "build/*.tar.gz" },
-        { "path": "build/*.zip" }
-      ]
-    }
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          "build/*.deb",
+          "build/*.tar.gz",
+          "build/*.zip"
+        ]
+      }
+    ]
   ]
 }

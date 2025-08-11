@@ -1,5 +1,4 @@
-name: Main CI/CD
-
+name: Stable Release
 on:
   workflow_dispatch: 
 
@@ -97,10 +96,10 @@ jobs:
       # with:
         # name: AppImage  
     
-    - name: DEBUGGING
-      run: |
-        ls -a
-        ls build -a
+    # - name: DEBUGGING
+    #   run: |
+    #     ls -a
+    #     ls build -a
 
     - name: Release
       if: ${{ steps.dry_run.outputs.next_version != '' }} # Only run if a version was determined
