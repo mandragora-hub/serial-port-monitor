@@ -4,7 +4,7 @@
 #
 
 export XDG_DATA_DIRS="${PWD}/share:${XDG_DATA_DIRS}"
-./sp-monitor # Adjust this path to your executable if needed
+./sp-monitor $@ # Adjust this path to your executable if needed
 
 # To test gsettings directly with your schema:
 #gsettings --schemadir="${PWD}/share/glib-2.0/schemas" list-keys com.example.my-gtk-app
