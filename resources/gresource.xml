@@ -5,6 +5,7 @@
     <file preprocess="xml-stripblanks">ui/view.ui</file>
     <file preprocess="xml-stripblanks">ui/gears_menu.ui</file>
     <file preprocess="xml-stripblanks">ui/prefs.ui</file>
+    <file preprocess="xml-stripblanks">ui/open_serial_port.ui</file>
     <file preprocess="xml-stripblanks">ui/about_dialog.ui</file>
     <file>sp-monitor.png</file>
     <file>welcome_msg.xml</file>

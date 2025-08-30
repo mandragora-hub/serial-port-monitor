@@ -70,3 +70,26 @@ std::string Utils::get_timestamp_string(
   oss << "[" << std::put_time(localTime, fmt.c_str()) << "]";
   return oss.str();
 }
+
+// TODO: what to do on error, should be continue or must throw a exeption?
+Glib::ustring Utils::get_string_from_object_base(
+    const Glib::RefPtr<Glib::ObjectBase>& object) {
+  if (!object) {
+    std::cerr << "Error: on_parity_dropdown_changed" << std::endl;
+    return Glib::ustring();
+  }
+  auto string_object = std::dynamic_pointer_cast<Gtk::StringObject>(object);
+  if (!string_object) {
+    std::cerr << "Error: Selected item could not be dynamically cast to "
+                 "Gtk::StringObject."
+              << std::endl;
+    return Glib::ustring();
+  }
+  Glib::ustring value = string_object->get_string();
+  return value;
+}
+
+int Utils::get_int_from_object_base(
+    const Glib::RefPtr<Glib::ObjectBase>& object) {
+  return std::stoi(Utils::get_string_from_object_base(object).raw());
+}

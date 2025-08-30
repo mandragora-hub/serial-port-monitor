@@ -1,17 +1,16 @@
 #pragma once
 
 #include <gtkmm-4.0/gtkmm.h>
-#include <chrono>
 
+#include <algorithm>
+#include <chrono>
 #include <string>
 
 class Utils {
  public:
-  // TODO: move template t in a way no only works with std::vector but every
-  // type could be using with find
-  template <typename T>
-  static int indexOf(std::vector<T> v, T el) {
-    auto it = find(v.begin(), v.end(), el);
+  template <typename T, typename V>
+  static int indexOf(T v, V el) {
+    auto it = std::find(v.begin(), v.end(), el);
     int index = it - v.begin();
     return index;
   }
@@ -27,9 +26,18 @@ class Utils {
   static Gtk::Widget* get_nth_child_of_box(Gtk::Box* parent_box, int n);
 
   // locale-safe way to trim leading and trailing
- static Glib::ustring trim(const Glib::ustring& str);
+  static Glib::ustring trim(const Glib::ustring& str);
 
   // default format: YYYY-MM-DD HH:MM:SS
-  static std::string get_timestamp_string(std::chrono::_V2::system_clock::time_point timestamp = std::chrono::system_clock::now(), std::string fmt = "%Y-%m-%d %H:%M:%S");
+  static std::string get_timestamp_string(
+      std::chrono::_V2::system_clock::time_point timestamp =
+          std::chrono::system_clock::now(),
+      std::string fmt = "%Y-%m-%d %H:%M:%S");
+
+  static Glib::ustring get_string_from_object_base(
+      const Glib::RefPtr<Glib::ObjectBase>& object);
+
+  static int get_int_from_object_base(
+      const Glib::RefPtr<Glib::ObjectBase>& object);
 
 };  // namespace Utils

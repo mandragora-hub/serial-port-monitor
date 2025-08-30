@@ -129,8 +129,8 @@ SPMAppWindow::SPMAppWindow(BaseObjectType *cobject,
 
 // static
 SPMAppWindow *SPMAppWindow::create() {
-  auto refBuilder = Gtk::Builder::create_from_resource(
-      "/org/gtkmm/spmonitor/ui/window.ui");
+  auto refBuilder =
+      Gtk::Builder::create_from_resource("/org/gtkmm/spmonitor/ui/window.ui");
 
   auto window =
       Gtk::Builder::get_widget_derived<SPMAppWindow>(refBuilder, "app_window");
@@ -140,85 +140,51 @@ SPMAppWindow *SPMAppWindow::create() {
   return window;
 }
 
+void SPMAppWindow::open_file_view(const Glib::ustring portname,
+                                  sp_port_config *config, sp_mode mode) {
+  // create / retrieve port settings
+  std::string port_setting_path = std::format("/org/gtkmm/spmonitor/ports/{}/",
+                                              normalize_port_path(portname));
+  Glib::RefPtr<Gio::Settings> port_settings =
+      Gio::Settings::create("org.gtkmm.spmonitor.ports", port_setting_path);
+
+  //  --------------------------
+  // // Try to create the serial ports
+  SerialPort *sp = SerialPort::create(portname, config, mode);
+  if (!sp) throw std::runtime_error("Error connecting with port: " + portname);
+
+  auto worker = std::make_shared<SPWorker>(sp);
+  worker->set_name(portname);
+  worker->thread = new std::thread([this, worker] { worker->do_work(this); });
+  sp_workers.push_back(worker);
+  sp->print_config();
+
+  Glib::RefPtr<UIView> ui_view = Glib::make_refptr_for_instance(new UIView);
+  initialize_ui_view(worker, ui_view, port_settings);
+  stacks.push_back(ui_view);
+
+  m_stack->add(*ui_view->view_box, portname, portname);
+  m_stack->set_visible_child(portname);
+
+  // m_search->set_sensitive(true);
+
+  // update_words();
+  update_lines();
+}
+
 void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   const Glib::ustring basename = file->get_basename();
 
-  auto refBuilder = Gtk::Builder::create_from_resource(
-      "/org/gtkmm/spmonitor/ui/view.ui");
-  auto view_box = refBuilder->get_widget<Gtk::Box>("view-box");
-  if (!view_box)
-    throw std::runtime_error("No \"lines_label\" object in view.ui");
-
-  auto view = refBuilder->get_widget<Gtk::TextView>("text-view");
-  if (!view) throw std::runtime_error("No \"lines_label\" object in view.ui");
-
-  auto clearOutputButton =
-      refBuilder->get_widget<Gtk::Button>("clear-output-button");
-  if (!clearOutputButton)
-    throw std::runtime_error("No \"clear-output-button\" object in view.ui");
-
-  auto input_entry = refBuilder->get_widget<Gtk::Entry>("input-entry");
-  if (!input_entry)
-    throw std::runtime_error("No \"input-entry\" object in view.ui");
-
-  auto input_send_button =
-      refBuilder->get_widget<Gtk::Button>("input-send-button");
-  if (!input_send_button)
-    throw std::runtime_error("No \"input-send-button\" object in view.ui");
-
-  auto autoscroll_check_button =
-      refBuilder->get_widget<Gtk::CheckButton>("autoscroll-check-button");
-  if (!autoscroll_check_button)
-    throw std::runtime_error(
-        "No \"autoscroll-check-button\" object in view.ui");
-
-  auto show_timestamp_check_button =
-      refBuilder->get_widget<Gtk::CheckButton>("show-timestamp-check-button");
-  if (!show_timestamp_check_button)
-    throw std::runtime_error(
-        "No \"show-timestamp-check-button\" object in view.ui");
-
-  auto parity_dropdown =
-      refBuilder->get_widget<Gtk::DropDown>("parity-dropdown");
-  if (!parity_dropdown)
-    throw std::runtime_error("No \"parity-dropdown\" object in view.ui");
-
-  auto parity_list = Gtk::StringList::create();
-  for (auto it : SerialPort::parity_names) {
-    if (it.first == SP_PARITY_INVALID) continue;
-    parity_list->append(it.second);
-  }
-  parity_dropdown->set_model(parity_list);
-
-  auto bauds_dropdown = refBuilder->get_widget<Gtk::DropDown>("bauds-dropdown");
-  if (!bauds_dropdown)
-    throw std::runtime_error("No \"bauds-dropdown\" object in view.ui");
-
-  auto bauds = Gtk::StringList::create();
-  for (int rate : SerialPort::commons_bauds) {
-    bauds->append(Glib::ustring::compose("%1 bauds", rate));
-  }
-  bauds_dropdown->set_model(bauds);
-
-  // Set GUI element and serial port with ports settings
+  // create / retrieve port settings
   std::string port_setting_path = std::format(
       "/org/gtkmm/spmonitor/ports/{}/", normalize_port_path(file->get_path()));
   Glib::RefPtr<Gio::Settings> port_settings =
       Gio::Settings::create("org.gtkmm.spmonitor.ports", port_setting_path);
 
-  port_settings->bind("autoscroll", autoscroll_check_button->property_active());
-  port_settings->bind("show-timestamp",
-                      show_timestamp_check_button->property_active());
+  //  --------------------------
 
   int bauds_settings = port_settings->get_uint("bauds");
-  int in = Utils::indexOf<int>(SerialPort::commons_bauds, bauds_settings);
-  bauds_dropdown->set_selected(in);
-
   Glib::ustring parity_setting = port_settings->get_string("parity");
-  int index_of_parity =
-      Utils::find_index_in_string_list(parity_list, parity_setting);
-  parity_dropdown->set_selected(index_of_parity);
-  //  --------------------------
 
   // Try to create the serial ports
   SerialPort *sp =
@@ -227,47 +193,18 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   if (!sp)
     throw std::runtime_error("Error connecting with port: " + file->get_path());
 
-  m_stack->add(*view_box, basename, basename);
-
   auto worker = std::make_shared<SPWorker>(sp);
   worker->set_name(basename);
-  worker->m_update_dispatcher.connect(
-      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_worker_update), worker,
-                 view, port_settings));
   worker->thread = new std::thread([this, worker] { worker->do_work(this); });
-
   sp_workers.push_back(worker);
+  sp->print_config();
 
-  // Connect gui signal with slots
-  Glib::Binding::bind_property(
-      input_entry->property_text(), input_send_button->property_sensitive(),
-      Glib::Binding::Flags::SYNC_CREATE, [](const Glib::ustring &text) -> bool {
-        return !Utils::trim(text).empty();
-      });
-  Glib::SlotSpawnChildSetup send_entry_to_worker_slot = sigc::bind(
-      sigc::mem_fun(*this,
-                    &SPMAppWindow::on_activate_entry_and_clicked_send_button),
-      input_entry, worker);
-  input_entry->signal_activate().connect(send_entry_to_worker_slot);
-  input_send_button->signal_clicked().connect(send_entry_to_worker_slot);
-  clearOutputButton->signal_clicked().connect(sigc::bind(
-      sigc::mem_fun(*this, &SPMAppWindow::on_clear_output), worker, view));
-  bauds_dropdown->property_selected().signal_changed().connect(
-      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_bauds_dropdown_changed),
-                 worker, bauds_dropdown, port_settings));
-  parity_dropdown->property_selected().signal_changed().connect(sigc::bind(
-      sigc::mem_fun(*this, &SPMAppWindow::on_parity_dropdown_changed), worker,
-      parity_dropdown, port_settings));
-  view->get_buffer()->signal_changed().connect(
-      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_text_view_changed),
-                 view, port_settings));
+  Glib::RefPtr<UIView> ui_view = Glib::make_refptr_for_instance(new UIView);
+  initialize_ui_view(worker, ui_view, port_settings);
+  stacks.push_back(ui_view);
 
-  port_settings->signal_changed("show-timestamp")
-      .connect(
-          sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::refresh_text_view),
-                     worker, view, port_settings));
-  m_settings->signal_changed("font").connect(
-      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_font_changed), view));
+  m_stack->add(*ui_view->view_box, basename, basename);
+  m_stack->set_visible_child(basename);
 
   // m_search->set_sensitive(true);
 
@@ -570,6 +507,21 @@ void SPMAppWindow::on_action_open_serial_port() {
     auto open_serial_port_dialog = SPMOpenSerialPortDialog::create(*window);
     open_serial_port_dialog->present();
 
+    // open_serial_port_dialog->connect_dispatcher.connect(sigc::mem_fun(*this,
+    // &SPMAppWindow::open_new_serial_port))
+
+    open_serial_port_dialog->connect_dispatcher.connect(
+        [open_serial_port_dialog, this]() {
+          std::string portname = open_serial_port_dialog->get_portname();
+          sp_port_config *config =
+              open_serial_port_dialog->get_serial_port_config();
+          sp_mode mode = open_serial_port_dialog->get_serial_port_mode();
+          // TODO: NOT OPEN PORT ALREADY CONNECTED
+          open_file_view(portname, config, mode);
+
+          open_serial_port_dialog->close();
+        });
+
     open_serial_port_dialog->signal_hide().connect(
         [open_serial_port_dialog]() { delete open_serial_port_dialog; });
   } catch (const Glib::Error &ex) {
@@ -634,4 +586,128 @@ Glib::RefPtr<Gtk::TextTag> SPMAppWindow::create_default_style_tag(
   // tag->property_pixels_below_lines() = 0;
 
   return tag;
+}
+
+void SPMAppWindow::initialize_ui_view(
+    const std::shared_ptr<SPWorker> &worker,
+    const Glib::RefPtr<UIView> &ui_view,
+    const Glib::RefPtr<Gio::Settings> &port_settings) {
+  ui_view->refBuilder =
+      Gtk::Builder::create_from_resource("/org/gtkmm/spmonitor/ui/view.ui");
+  ui_view->view_box = ui_view->refBuilder->get_widget<Gtk::Box>("view-box");
+  if (!ui_view->view_box)
+    throw std::runtime_error("No \"view-box\" object in view.ui");
+
+  ui_view->view = ui_view->refBuilder->get_widget<Gtk::TextView>("text-view");
+  if (!ui_view->view)
+    throw std::runtime_error("No \"text-view\" object in view.ui");
+
+  ui_view->clear_output_button =
+      ui_view->refBuilder->get_widget<Gtk::Button>("clear-output-button");
+  if (!ui_view->clear_output_button)
+    throw std::runtime_error("No \"clear-output-button\" object in view.ui");
+
+  ui_view->input_entry =
+      ui_view->refBuilder->get_widget<Gtk::Entry>("input-entry");
+  if (!ui_view->input_entry)
+    throw std::runtime_error("No \"input-entry\" object in view.ui");
+
+  ui_view->input_send_button =
+      ui_view->refBuilder->get_widget<Gtk::Button>("input-send-button");
+  if (!ui_view->input_send_button)
+    throw std::runtime_error("No \"input-send-button\" object in view.ui");
+
+  ui_view->autoscroll_check_button =
+      ui_view->refBuilder->get_widget<Gtk::CheckButton>(
+          "autoscroll-check-button");
+  if (!ui_view->autoscroll_check_button)
+    throw std::runtime_error(
+        "No \"autoscroll-check-button\" object in view.ui");
+
+  ui_view->show_timestamp_check_button =
+      ui_view->refBuilder->get_widget<Gtk::CheckButton>(
+          "show-timestamp-check-button");
+  if (!ui_view->show_timestamp_check_button)
+    throw std::runtime_error(
+        "No \"show-timestamp-check-button\" object in view.ui");
+
+  ui_view->parity_dropdown =
+      ui_view->refBuilder->get_widget<Gtk::DropDown>("parity-dropdown");
+  if (!ui_view->parity_dropdown)
+    throw std::runtime_error("No \"parity-dropdown\" object in view.ui");
+
+  auto parity_list = Gtk::StringList::create();
+  for (auto it : SerialPort::parity_names) {
+    if (it.first == SP_PARITY_INVALID) continue;
+    parity_list->append(it.second);
+  }
+  ui_view->parity_dropdown->set_model(parity_list);
+
+  ui_view->bauds_dropdown =
+      ui_view->refBuilder->get_widget<Gtk::DropDown>("bauds-dropdown");
+  if (!ui_view->bauds_dropdown)
+    throw std::runtime_error("No \"bauds-dropdown\" object in view.ui");
+
+  auto bauds = Gtk::StringList::create();
+  for (int rate : SerialPort::commons_bauds) {
+    bauds->append(Glib::ustring::compose("%1 bauds",
+                                         Glib::ustring(std::to_string(rate))));
+  }
+  ui_view->bauds_dropdown->set_model(bauds);
+
+  //
+  port_settings->bind("autoscroll",
+                      ui_view->autoscroll_check_button->property_active());
+  port_settings->bind("show-timestamp",
+                      ui_view->show_timestamp_check_button->property_active());
+
+  int bauds_settings = port_settings->get_uint("bauds");
+  int in = Utils::indexOf<std::array<int, 23>, int>(SerialPort::commons_bauds,
+                                                    bauds_settings);
+  ui_view->bauds_dropdown->set_selected(in);
+
+  Glib::ustring parity_setting = port_settings->get_string("parity");
+  int index_of_parity =
+      Utils::find_index_in_string_list(parity_list, parity_setting);
+  ui_view->parity_dropdown->set_selected(index_of_parity);
+
+  // Connect gui signal with slots
+
+  worker->m_update_dispatcher.connect(
+      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_worker_update), worker,
+                 ui_view->view, port_settings));
+
+  Glib::Binding::bind_property(ui_view->input_entry->property_text(),
+                               ui_view->input_send_button->property_sensitive(),
+                               Glib::Binding::Flags::SYNC_CREATE,
+                               [](const Glib::ustring &text) -> bool {
+                                 return !Utils::trim(text).empty();
+                               });
+  Glib::SlotSpawnChildSetup send_entry_to_worker_slot = sigc::bind(
+      sigc::mem_fun(*this,
+                    &SPMAppWindow::on_activate_entry_and_clicked_send_button),
+      ui_view->input_entry, worker);
+  ui_view->input_entry->signal_activate().connect(send_entry_to_worker_slot);
+  ui_view->input_send_button->signal_clicked().connect(
+      send_entry_to_worker_slot);
+  ui_view->clear_output_button->signal_clicked().connect(
+      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_clear_output), worker,
+                 ui_view->view));
+  ui_view->bauds_dropdown->property_selected().signal_changed().connect(
+      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_bauds_dropdown_changed),
+                 worker, ui_view->bauds_dropdown, port_settings));
+  ui_view->parity_dropdown->property_selected().signal_changed().connect(
+      sigc::bind(
+          sigc::mem_fun(*this, &SPMAppWindow::on_parity_dropdown_changed),
+          worker, ui_view->parity_dropdown, port_settings));
+  ui_view->view->get_buffer()->signal_changed().connect(
+      sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_text_view_changed),
+                 ui_view->view, port_settings));
+
+  port_settings->signal_changed("show-timestamp")
+      .connect(
+          sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::refresh_text_view),
+                     worker, ui_view->view, port_settings));
+  m_settings->signal_changed("font").connect(sigc::bind(
+      sigc::mem_fun(*this, &SPMAppWindow::on_font_changed), ui_view->view));
 }

@@ -5,31 +5,39 @@
 #include <format>
 #include <iostream>
 
-// SerialPort::SerialPort(std::string port_name, sp_mode mode) {
-//   check(sp_get_port_by_name(port_name.c_str(), &port));
-//   check(sp_open(port, mode));
-
-//   // Default settings
-//   std::cout << "Setting port " << port_name << " to 9600 8N1, no flow control."
-//             << std::endl;
-//   config = create_default_settings();
-
-//   std::cout << "Applying new configuration" << std::endl;
-//   check(sp_set_config(port, config));
-// }
-
-SerialPort::SerialPort(std::string port_name, sp_mode mode, int baud_rate,
-                       sp_parity parity, int bits, int stopbits,
-                       sp_flowcontrol flowcontrol) {
+SerialPort::SerialPort(std::string port_name, sp_mode mode) : mode(mode) {
   check(sp_get_port_by_name(port_name.c_str(), &port));
   check(sp_open(port, mode));
 
+  // Default settings
+  // std::cout << "Setting port " << port_name
+  //           << " to 9600 8N1, no flow
+  //              control."
+  //           << std::endl;
   config = create_default_settings();
-  check(sp_set_config_baudrate(config, baud_rate));
-  check(sp_set_config_bits(config, bits));
-  check(sp_set_config_parity(config, parity));
-  check(sp_set_config_stopbits(config, stopbits));
-  check(sp_set_config_flowcontrol(config, flowcontrol));
+
+  // std::cout << "Applying new configuration" << std::endl;
+  check(sp_set_config(port, config));
+}
+
+SerialPort::SerialPort(std::string port_name, sp_port_config *config,
+                       sp_mode mode)
+    : config(config), mode(mode) {
+  check(sp_get_port_by_name(port_name.c_str(), &port));
+  check(sp_open(port, mode));
+
+  // config = config;
+  check(sp_set_config(port, config));
+}
+
+SerialPort::SerialPort(std::string port_name, sp_mode mode, int baud_rate,
+                       sp_parity parity, int bits, int stopbits,
+                       sp_flowcontrol flowcontrol)
+    : mode(mode) {
+  check(sp_get_port_by_name(port_name.c_str(), &port));
+  check(sp_open(port, mode));
+
+  config = create_config(baud_rate, parity, bits, stopbits, flowcontrol);
   check(sp_set_config(port, config));
 }
 
@@ -77,6 +85,18 @@ SerialPort::~SerialPort() {
 //   return nullptr;
 // }
 
+SerialPort *SerialPort::create(std::string port_name, sp_port_config *config,
+                               sp_mode mode = SP_MODE_READ) {
+  try {
+    SerialPort *sp = new SerialPort(port_name, config, mode);
+    return sp;
+  } catch (const std::exception &e) {
+    std::cerr << e.what() << '\n';
+  }
+
+  return nullptr;
+}
+
 SerialPort *SerialPort::create(std::string port_name, sp_mode mode,
                                int baud_rate, sp_parity parity, int bits,
                                int stopbits, sp_flowcontrol flowcontrol) {
@@ -89,28 +109,6 @@ SerialPort *SerialPort::create(std::string port_name, sp_mode mode,
   }
 
   return nullptr;
-}
-
-std::vector<std::string> SerialPort::list_available_serial_ports() {
-  struct sp_port **port_list;
-  enum sp_return result = sp_list_ports(&port_list);
-  if (result != SP_OK) {
-    std::cerr << "sp_list_ports() failed!" << std::endl;
-    return std::vector<std::string>();
-  }
-
-  /* Iterate through the ports. When port_list[i] is NULL
-   * this indicates the end of the list. */
-  std::vector<std::string> list;
-  for (int i = 0; port_list[i] != NULL; i++) {
-    struct sp_port *port = port_list[i];
-    char *port_name = sp_get_port_name(port);
-    list.push_back(port_name);
-  }
-
-  /* Free the array created by sp_list_ports(). */
-  sp_free_port_list(port_list);
-  return list;
 }
 
 int SerialPort::input_waiting() {
@@ -146,6 +144,8 @@ unsigned int SerialPort::get_bauds_rate() {
   return bauds_rate;
 }
 
+sp_mode SerialPort::get_mode() { return mode; }
+
 void SerialPort::set_bauds_rate(unsigned int bauds_rate) {
   struct sp_port_config *other_config;
   check(sp_new_config(&other_config));
@@ -170,9 +170,11 @@ void SerialPort::print_config() {
   check(sp_get_config_parity(config, &parity));
 
   std::cout << std::format(
-                   "Port name: {}, baudrate: {}, data bits: {}, parity: {}, "
+                   "Port name: {}, mode: {}, baudrate: {}, data bits: {}, "
+                   "parity: {}, "
                    "stop bits: {}",
-                   port_name, baudrate, bits, parity_name(parity), stopbits)
+                   port_name, mode_name(mode), baudrate, bits,
+                   parity_name(parity), stopbits)
             << std::endl;
 }
 
@@ -232,7 +234,29 @@ int SerialPort::check(sp_return result) {
   }
 }
 
-const std::vector<int> SerialPort::commons_bauds = {
+std::vector<std::string> SerialPort::list_available_serial_ports() {
+  struct sp_port **port_list;
+  enum sp_return result = sp_list_ports(&port_list);
+  if (result != SP_OK) {
+    std::cerr << "sp_list_ports() failed!" << std::endl;
+    return std::vector<std::string>();
+  }
+
+  /* Iterate through the ports. When port_list[i] is NULL
+   * this indicates the end of the list. */
+  std::vector<std::string> list;
+  for (int i = 0; port_list[i] != NULL; i++) {
+    struct sp_port *port = port_list[i];
+    char *port_name = sp_get_port_name(port);
+    list.push_back(port_name);
+  }
+
+  /* Free the array created by sp_list_ports(). */
+  sp_free_port_list(port_list);
+  return list;
+}
+
+const std::array<int, 23> SerialPort::commons_bauds = {
     50,    75,    110,    134,    150,    200,    300,   600,
     1200,  1800,  2400,   4800,   9600,   19200,  28800, 38400,
     57600, 76800, 115200, 230400, 460800, 576000, 921600};
@@ -262,10 +286,57 @@ const char *SerialPort::parity_name(enum sp_parity parity) {
   }
 }
 
-sp_parity SerialPort::parity_from_name(std::string parity_name) {
+sp_parity SerialPort::parity_from_name(const std::string parity_name) {
   for (auto it : SerialPort::parity_names) {
     if (strcmp(it.second.c_str(), parity_name.c_str()) == 0) return it.first;
   }
 
   return SP_PARITY_INVALID;
+}
+
+std::map<enum sp_flowcontrol, std::string> SerialPort::flowcontrol_names = {
+    {SP_FLOWCONTROL_NONE, "None"},
+    {SP_FLOWCONTROL_XONXOFF, "XON/XOFF"},
+    {SP_FLOWCONTROL_RTSCTS, "RTS/CTS"},
+    {SP_FLOWCONTROL_DTRDSR, "DTR/DSR"},
+};
+
+const char *SerialPort::flowcontrol_name(enum sp_flowcontrol flowcontrol) {
+  auto it = flowcontrol_names.find(flowcontrol);
+  if (it != flowcontrol_names.end()) return it->second.c_str();
+
+  return flowcontrol_names[SP_FLOWCONTROL_NONE].c_str();
+}
+
+sp_flowcontrol SerialPort::flowcontrol_from_name(std::string flowcontrol_name) {
+  for (auto it : SerialPort::flowcontrol_names) {
+    if (strcmp(it.second.c_str(), flowcontrol_name.c_str()) == 0)
+      return it.first;
+  }
+
+  return SP_FLOWCONTROL_NONE;
+}
+
+sp_port_config *SerialPort::create_config(int baud_rate, sp_parity parity,
+                                          int bits, int stopbits,
+                                          sp_flowcontrol flowcontrol) {
+  sp_port_config *new_config = create_default_settings();
+  check(sp_set_config_baudrate(new_config, baud_rate));
+  check(sp_set_config_bits(new_config, bits));
+  check(sp_set_config_parity(new_config, parity));
+  check(sp_set_config_stopbits(new_config, stopbits));
+  check(sp_set_config_flowcontrol(new_config, flowcontrol));
+  return new_config;
+}
+
+std::map<enum sp_mode, std::string> SerialPort::mode_names = {
+    {SP_MODE_READ, "read"},
+    {SP_MODE_READ_WRITE, "read/write"},
+    {SP_MODE_WRITE, "write"}};
+
+const char *SerialPort::mode_name(sp_mode mode) {
+  auto it = mode_names.find(mode);
+  if (it != mode_names.end()) return it->second.c_str();
+
+  return nullptr;
 }
