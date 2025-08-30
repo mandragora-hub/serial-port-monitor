@@ -153,10 +153,10 @@ void SPMAppWindow::open_file_view(const Glib::ustring portname,
   SerialPort *sp = SerialPort::create(portname, config, mode);
   if (!sp) throw std::runtime_error("Error connecting with port: " + portname);
 
-  auto worker = std::make_shared<SPWorker>(sp);
+  SPWorker *worker = new SPWorker(sp);
   worker->set_name(portname);
   worker->thread = new std::thread([this, worker] { worker->do_work(this); });
-  sp_workers.push_back(worker);
+  workers.push_back(worker);
   sp->print_config();
 
   Glib::RefPtr<UIView> ui_view = Glib::make_refptr_for_instance(new UIView);
@@ -193,10 +193,10 @@ void SPMAppWindow::open_file_view(const Glib::RefPtr<Gio::File> &file) {
   if (!sp)
     throw std::runtime_error("Error connecting with port: " + file->get_path());
 
-  auto worker = std::make_shared<SPWorker>(sp);
+  SPWorker *worker = new SPWorker(sp);
   worker->set_name(basename);
   worker->thread = new std::thread([this, worker] { worker->do_work(this); });
-  sp_workers.push_back(worker);
+  workers.push_back(worker);
   sp->print_config();
 
   Glib::RefPtr<UIView> ui_view = Glib::make_refptr_for_instance(new UIView);
@@ -246,7 +246,7 @@ void SPMAppWindow::on_find_word(const Gtk::Button *button) {
 void SPMAppWindow::on_reveal_child_changed() { update_words(); }
 
 void SPMAppWindow::on_bauds_dropdown_changed(
-    std::shared_ptr<SPWorker> worker, Gtk::DropDown *dropdown,
+    SPWorker *worker, Gtk::DropDown *dropdown,
     Glib::RefPtr<Gio::Settings> port_settings) {
   const int bauds_rate = SerialPort::commons_bauds.at(dropdown->get_selected());
   port_settings->set_uint("bauds", bauds_rate);
@@ -255,7 +255,7 @@ void SPMAppWindow::on_bauds_dropdown_changed(
 }
 
 void SPMAppWindow::on_parity_dropdown_changed(
-    std::shared_ptr<SPWorker> worker, Gtk::DropDown *dropdown,
+    SPWorker *worker, Gtk::DropDown *dropdown,
     Glib::RefPtr<Gio::Settings> port_settings) {
   Glib::RefPtr<Glib::ObjectBase> selected_item = dropdown->get_selected_item();
 
@@ -278,14 +278,13 @@ void SPMAppWindow::on_parity_dropdown_changed(
   if (port) port->set_parity(SerialPort::parity_from_name(value));
 }
 
-void SPMAppWindow::on_clear_output(std::shared_ptr<SPWorker> worker,
-                                   Gtk::TextView *textView) {
+void SPMAppWindow::on_clear_output(SPWorker *worker, Gtk::TextView *textView) {
   textView->get_buffer()->set_text("");  // TODO; this is the correct clear way?
   worker->clear_entries();
 }
 
-void SPMAppWindow::on_activate_entry_and_clicked_send_button(
-    Gtk::Entry *entry, std::shared_ptr<SPWorker> worker) {
+void SPMAppWindow::on_activate_entry_and_clicked_send_button(Gtk::Entry *entry,
+                                                             SPWorker *worker) {
   Glib::ustring msg = Utils::trim(entry->get_text());
   if (msg.empty()) return;
   msg.append("\n");
@@ -293,8 +292,7 @@ void SPMAppWindow::on_activate_entry_and_clicked_send_button(
   entry->set_text("");
 }
 
-void SPMAppWindow::on_worker_update(std::shared_ptr<SPWorker> worker,
-                                    Gtk::TextView *textView,
+void SPMAppWindow::on_worker_update(SPWorker *worker, Gtk::TextView *textView,
                                     Glib::RefPtr<Gio::Settings> port_settings) {
   if (worker->get_shall_stop()) return;  // Is this really needed?
   auto buffer = textView->get_buffer();
@@ -326,8 +324,8 @@ void SPMAppWindow::on_worker_update(std::shared_ptr<SPWorker> worker,
 }
 
 void SPMAppWindow::refresh_text_view(
-    Glib::ustring key, std::shared_ptr<SPWorker> worker,
-    Gtk::TextView *textView, Glib::RefPtr<Gio::Settings> port_settings) {
+    Glib::ustring key, SPWorker *worker, Gtk::TextView *textView,
+    Glib::RefPtr<Gio::Settings> port_settings) {
   bool showtimestamp = port_settings->get_boolean("show-timestamp");
   auto tag = create_default_style_tag(textView);
   auto buffer = textView->get_buffer();
@@ -352,13 +350,14 @@ void SPMAppWindow::on_close_current_tab() {
 
   // Stop worker
   const Glib::ustring basename = m_stack->get_visible_child_name();
-  for (auto worker : sp_workers) {
+  for (auto worker : workers) {
     if (basename == worker->get_name()) {
       worker->stop_work();
 
-      auto it = std::find(sp_workers.begin(), sp_workers.end(), worker);
-      std::size_t index = std::distance(sp_workers.begin(), it);
-      sp_workers.erase(sp_workers.begin() + index);
+      auto it = std::find(workers.begin(), workers.end(), worker);
+      std::size_t index = std::distance(workers.begin(), it);
+      workers.erase(workers.begin() + index);
+      delete worker;
       break;
     }
   }
@@ -589,8 +588,7 @@ Glib::RefPtr<Gtk::TextTag> SPMAppWindow::create_default_style_tag(
 }
 
 void SPMAppWindow::initialize_ui_view(
-    const std::shared_ptr<SPWorker> &worker,
-    const Glib::RefPtr<UIView> &ui_view,
+    SPWorker *worker, const Glib::RefPtr<UIView> &ui_view,
     const Glib::RefPtr<Gio::Settings> &port_settings) {
   ui_view->refBuilder =
       Gtk::Builder::create_from_resource("/org/gtkmm/spmonitor/ui/view.ui");
@@ -672,7 +670,6 @@ void SPMAppWindow::initialize_ui_view(
   ui_view->parity_dropdown->set_selected(index_of_parity);
 
   // Connect gui signal with slots
-
   worker->m_update_dispatcher.connect(
       sigc::bind(sigc::mem_fun(*this, &SPMAppWindow::on_worker_update), worker,
                  ui_view->view, port_settings));
