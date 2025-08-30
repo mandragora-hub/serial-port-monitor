@@ -169,10 +169,11 @@ void SerialPort::print_config() {
   check(sp_get_config_stopbits(config, &stopbits));
   check(sp_get_config_parity(config, &parity));
 
+  std::cout << "Print config " << port_name << std::endl;
   std::cout << std::format(
-                   "Port name: {}, mode: {}, baudrate: {}, data bits: {}, "
-                   "parity: {}, "
-                   "stop bits: {}",
+                   "Port name: {}\nMode: {}\nBaudrate: {}\nData bits: {}\n"
+                   "Parity: {}\n"
+                   "Stop bits: {}\n",
                    port_name, mode_name(mode), baudrate, bits,
                    parity_name(parity), stopbits)
             << std::endl;
